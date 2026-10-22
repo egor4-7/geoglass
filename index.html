@@ -1,1 +1,742 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Geoglass — Gazipaşa-Alanya Corridor</title>
+  
+  <meta name="theme-color" content="#0b131e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Geoglass">
+  
+  <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Geoglass%22,%22short_name%22:%22Geoglass%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%230b131e%22,%22theme_color%22:%22%230b131e%22}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0b131e;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0; left: 0;
+      z-index: 1;
+      background: #0b131e;
+    }
+
+    .leaflet-tile {
+      filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3);
+    }
+
+    .leaflet-control-attribution {
+      display: none !important;
+    }
+
+    /* Верхняя панель */
+    .top-overlay {
+      position: absolute;
+      top: max(16px, env(safe-area-inset-top)); 
+      left: 16px; right: 16px;
+      display: flex; flex-direction: column; align-items: flex-start;
+      z-index: 10; pointer-events: none;
+    }
+    .top-overlay > * { pointer-events: auto; }
+
+    /* Виджет погоды */
+    .weather-card {
+      display: flex; align-items: center;
+      background: rgba(15, 34, 61, 0.45); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      padding: 10px 16px; border-radius: 22px; border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); color: #ffffff; font-weight: 700; font-size: 14px; gap: 12px;
+      cursor: pointer; transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .weather-card:active { transform: scale(0.96); }
+
+    .liquid-weather-icon { width: 28px; height: 28px; position: relative; display: flex; align-items: center; justify-content: center; }
+    .liquid-sun {
+      position: absolute; top: 1px; left: 1px; width: 18px; height: 18px;
+      background: radial-gradient(circle, #ffea00 0%, #ff9900 100%); border-radius: 50%;
+      box-shadow: 0 0 10px rgba(255, 200, 0, 0.8); animation: pulseSun 3s ease-in-out infinite;
+    }
+    .liquid-cloud {
+      position: absolute; bottom: 1px; right: 0px; width: 22px; height: 14px;
+      background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(1px); border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      animation: floatCloud 2.5s ease-in-out infinite;
+    }
+
+    @keyframes pulseSun { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+    @keyframes floatCloud { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(2px); } }
+
+    .mini-icon { width: 14px; height: 14px; position: relative; display: inline-block; vertical-align: middle; margin-right: 6px; }
+    .mini-sun { background: radial-gradient(circle, #ffea00 0%, #ff9900 100%); border-radius: 50%; box-shadow: 0 0 6px rgba(255, 200, 0, 0.9); }
+    .mini-moon { background: radial-gradient(circle, #c2e9fb 0%, #a1c4fd 100%); border-radius: 50%; box-shadow: 0 0 6px rgba(160, 200, 255, 0.7); }
+    .mini-water { background: radial-gradient(circle, #00c6ff 0%, #0072ff 100%); border-radius: 50%; box-shadow: 0 0 6px rgba(0, 150, 255, 0.7); }
+
+    /* Погода поповер */
+    .weather-popover {
+      position: absolute; top: 60px; left: 0; width: 320px;
+      background: rgba(15, 34, 61, 0.65); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 24px; padding: 16px; color: #fff;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5); z-index: 25; opacity: 0;
+      transform: translateY(-10px) scale(0.92); transform-origin: top left; pointer-events: none;
+      transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .weather-popover.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+
+    .sun-cycle-container {
+      margin-top: 10px; padding: 10px; background: rgba(255, 255, 255, 0.08);
+      border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .sun-cycle-bar {
+      position: relative; width: 100%; height: 4px;
+      background: linear-gradient(90deg, #ff7e5f 0%, #feb47b 50%, #4a90e2 100%);
+      border-radius: 2px; margin: 12px 0 6px 0;
+    }
+    .sun-cycle-dot {
+      position: absolute; top: -5px; left: 70%; width: 14px; height: 14px;
+      background: #ffcc00; border: 2px solid #ffffff; border-radius: 50%; box-shadow: 0 0 8px #ffcc00;
+    }
+    .sun-cycle-time { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.8); font-weight: 600; }
+
+    /* Нижняя панель (автоматически учитывает нижнюю панель Safari и safe-area) */
+    .bottom-overlay {
+      position: absolute;
+      bottom: calc(env(safe-area-inset-bottom) + 70px);
+      left: 16px; right: 16px;
+      z-index: 10; pointer-events: none;
+    }
+    .bottom-overlay > * { pointer-events: auto; }
+
+    .search-container { position: relative; width: 240px; margin-bottom: 12px; }
+    .search-bar {
+      display: flex; align-items: center; width: 100%;
+      background: rgba(15, 34, 61, 0.45); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-radius: 26px; padding: 10px 16px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .search-input {
+      flex: 1; border: none; background: transparent; font-size: 14px; color: #ffffff; font-weight: 600; outline: none; user-select: text; -webkit-user-select: text;
+    }
+    .search-input::placeholder { color: rgba(255, 255, 255, 0.55); }
+
+    .search-results-popover {
+      position: absolute; bottom: 54px; left: 0; width: 280px;
+      background: rgba(15, 34, 61, 0.65); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 20px; padding: 14px; color: #ffffff;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5); opacity: 0; transform: translateY(15px) scale(0.95);
+      pointer-events: none; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .search-results-popover.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+
+    /* Бар категорий */
+    .segmented-control-container { width: 100%; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+    .segmented-control-container::-webkit-scrollbar { display: none; }
+
+    .segmented-track {
+      position: relative; display: inline-flex;
+      background: rgba(15, 34, 61, 0.45); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 28px; padding: 4px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4); touch-action: none;
+    }
+
+    .lens-indicator {
+      position: absolute; top: 4px; left: 4px; height: calc(100% - 8px);
+      background: rgba(255, 255, 255, 0.28); backdrop-filter: blur(25px) saturate(190%); -webkit-backdrop-filter: blur(25px) saturate(190%);
+      border: 1.5px solid rgba(255, 255, 255, 0.7); border-radius: 24px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 0 12px rgba(255, 255, 255, 0.4);
+      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+      pointer-events: none; z-index: 1; transform-origin: center center;
+    }
+    .lens-indicator.pressing {
+      transform: scale(1.25) !important; 
+      box-shadow: 0 14px 38px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.42);
+    }
+
+    .segmented-btn {
+      position: relative; z-index: 2; background: transparent; border: none;
+      color: rgba(255, 255, 255, 0.7); padding: 10px 16px; font-size: 13px; font-weight: 600;
+      white-space: nowrap; cursor: pointer; transition: color 0.2s ease; display: flex; align-items: center; gap: 6px;
+    }
+    .segmented-btn.active { color: #ffffff; font-weight: 700; text-shadow: 0 0 8px rgba(255,255,255,0.4); }
+
+    /* Модальные окна (аккуратный отступ над нижней панелью) */
+    .glass-sheet {
+      position: absolute; bottom: 145px; left: 16px; right: 16px;
+      background: rgba(15, 34, 61, 0.75); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 24px; padding: 18px; color: #fff;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5); z-index: 20; opacity: 0; transform: translateY(25px) scale(0.96);
+      pointer-events: none; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .glass-sheet.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+
+    .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: 700; font-size: 16px; }
+
+    .close-btn {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+      border: 1.5px solid rgba(255, 255, 255, 0.5); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 16px; color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: transform 0.2s ease;
+    }
+    .close-btn:active { transform: scale(0.9); }
+
+    .sheet-list { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .sheet-item {
+      display: flex; justify-content: space-between; background: rgba(255, 255, 255, 0.08);
+      padding: 10px 14px; border-radius: 12px; align-items: center; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .badge-gal { background: #0056b3; padding: 4px 8px; border-radius: 8px; font-weight: bold; font-size: 12px; }
+    .badge-gan { background: #d9534f; padding: 4px 8px; border-radius: 8px; font-weight: bold; font-size: 12px; }
+
+    .bus-marker, .hub-marker, .memorial-marker {
+      background: rgba(40, 167, 69, 0.85); backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.9); border-radius: 20px; color: white;
+      padding: 6px 12px; font-weight: 700; font-size: 13px; box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+      white-space: nowrap; cursor: pointer;
+    }
+    .hub-marker { background: rgba(0, 86, 179, 0.85); }
+    .memorial-marker { background: rgba(46, 204, 113, 0.9); }
+
+    .panorama-preview {
+      width: 100%; height: 140px;
+      background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 50%, #2ecc71 100%);
+      border-radius: 16px; margin-bottom: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.3); box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+      cursor: pointer; transition: transform 0.2s;
+    }
+    .panorama-preview:active { transform: scale(0.98); }
+    .tree-icon-3d { font-size: 38px; animation: floatTree 3s ease-in-out infinite; }
+    @keyframes floatTree { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-5px) scale(1.08); } }
+
+    /* Полноэкранный VR просмотрщик */
+    .immersive-pano-modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(5, 10, 20, 0.9); backdrop-filter: blur(35px); -webkit-backdrop-filter: blur(35px);
+      z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.35s ease;
+    }
+    .immersive-pano-modal.open { opacity: 1; pointer-events: auto; }
+
+    .pano-stage {
+      position: relative; width: 92%; max-width: 650px; height: 380px;
+      background: linear-gradient(180deg, #102a1c 0%, #081c15 60%, #1c3829 100%);
+      border-radius: 28px; border: 1.5px solid rgba(255,255,255,0.4);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+      overflow: hidden; touch-action: pan-x; cursor: grab;
+    }
+    .pano-stage:active { cursor: grabbing; }
+
+    .pano-path {
+      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 120px; height: 100%;
+      background: linear-gradient(to top, #4a3b32 0%, #2b211c 60%, rgba(20,15,12,0.8) 100%);
+      clip-path: polygon(30% 100%, 70% 100%, 55% 0%, 45% 0%);
+      z-index: 1; opacity: 0.85;
+    }
+
+    .pano-scene-content {
+      position: absolute; width: 250%; height: 100%; display: flex; align-items: center; justify-content: space-around;
+      transition: transform 0.1s ease-out; z-index: 2;
+    }
+
+    .pano-tree-item {
+      display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 18px;
+      background: rgba(15, 34, 61, 0.75); backdrop-filter: blur(15px); border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      text-align: center; width: 170px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="map"></div>
+
+  <!-- Верхняя панель -->
+  <div class="top-overlay">
+    <div class="weather-card" onclick="toggleWeatherSheet()">
+      <div class="liquid-weather-icon">
+        <div class="liquid-sun"></div>
+        <div class="liquid-cloud"></div>
+      </div>
+      <span>+28°C</span>
+    </div>
+
+    <!-- Погода поповер -->
+    <div class="weather-popover" id="weatherSheet">
+      <div class="sheet-header">
+        <span><span class="mini-icon mini-sun"></span>Погода: Газипаша</span>
+        <div class="close-btn" onclick="toggleWeatherSheet()">✕</div>
+      </div>
+      <div class="sheet-list">
+        <div class="sheet-item"><span>Сейчас</span><span><span class="mini-icon mini-sun"></span>+28°C, Ясно</span></div>
+        <div class="sheet-item"><span>Ночь</span><span><span class="mini-icon mini-moon"></span>+21°C, Ветер</span></div>
+        <div class="sheet-item"><span>Температура воды</span><span><span class="mini-icon mini-water"></span>+25°C</span></div>
+      </div>
+      
+      <div class="sun-cycle-container">
+        <div class="sun-cycle-time">
+          <span><span class="mini-icon mini-sun"></span>Восход 06:58</span>
+          <span><span class="mini-icon mini-moon"></span>Закат 18:12</span>
+        </div>
+        <div class="sun-cycle-bar">
+          <div class="sun-cycle-dot"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Окно транспорта -->
+  <div class="glass-sheet" id="busSheet">
+    <div class="sheet-header">
+      <span>🚍 Транспорт коридора (Газипаша)</span>
+      <div class="close-btn" onclick="toggleBusSheet()">✕</div>
+    </div>
+    <div class="sheet-list">
+      <div class="sheet-item">
+        <div><span class="badge-gal">GAL02</span> <b style="margin-left: 6px;">Газипаша - Аланья</b><div style="font-size: 11px; color: rgba(255,255,255,0.6);">Центр (Merkez Durağı)</div></div>
+        <span style="color: #4cd964; font-weight: 700;">06:30 • 06:50 • 07:10</span>
+      </div>
+      <div class="sheet-item">
+        <div><span class="badge-gan">GAN01</span> <b style="margin-left: 6px;">Газипаша - Анталья</b><div style="font-size: 11px; color: rgba(255,255,255,0.6);">Mehmet Oğuz Blv</div></div>
+        <span style="color: #ffcc00; font-weight: 700;">06:00 • 08:00 • 11:00</span>
+      </div>
+      <div class="sheet-item">
+        <div><span class="badge-gal">GAL02</span> <b style="margin-left: 6px;">Газипаша - Аланья</b><div style="font-size: 11px; color: rgba(255,255,255,0.6);">Отправление</div></div>
+        <span style="font-weight: 700;">07:30 • 07:50</span>
+      </div>
+      <div class="sheet-item">
+        <div><span class="badge-gan">GAN01</span> <b style="margin-left: 6px;">Газипаша - Анталья</b><div style="font-size: 11px; color: rgba(255,255,255,0.6);">Рейс дня</div></div>
+        <span style="font-weight: 700;">13:30</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Окно пасхалки: Аллея добрых дел -->
+  <div class="glass-sheet" id="memorialSheet">
+    <div class="sheet-header">
+      <span>🌱 Аллея добрых дел (Hatıra Ormanı)</span>
+      <div class="close-btn" onclick="toggleMemorialSheet()">✕</div>
+    </div>
+    
+    <div class="panorama-preview" onclick="openImmersivePano()">
+      <div class="tree-icon-3d">🌳</div>
+      <div style="font-size: 13px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 5px 14px; border-radius: 12px; margin-top: 6px; border: 1px solid rgba(255,255,255,0.3);">
+        🌐 Нажмите для запуска VR-панорамы аллеи
+      </div>
+    </div>
+
+    <div style="font-size: 13px; color: rgba(255,255,255,0.85); margin-bottom: 10px; line-height: 1.4;">
+      Экологическая память: вместо холодных плит здесь высажены туи. Каждое дерево хранит память о добрых делах и растет с заботой близких.
+    </div>
+    <div class="sheet-list">
+      <div class="sheet-item">
+        <span>Статус роста дерева</span>
+        <b style="color: #4cd964;">🌿 Здоровое (3 года)</b>
+      </div>
+      <div class="sheet-item">
+        <span>Памятная табличка</span>
+        <span style="font-size: 12px; color: rgba(255,255,255,0.8);">«Создал парк для детей, посадил 50 деревьев»</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Полноэкранный VR просмотрщик -->
+  <div class="immersive-pano-modal" id="panoModal">
+    <div style="width: 92%; max-width: 650px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; color: #fff;">
+      <span style="font-weight: 700; font-size: 16px;">🌿 VR Панорама аллеи (Свайпайте для обзора)</span>
+      <div class="close-btn" onclick="closeImmersivePano()">✕</div>
+    </div>
+    
+    <div class="pano-stage" id="panoStage">
+      <div class="pano-path"></div>
+      <div class="pano-scene-content" id="panoScene">
+        <div class="pano-tree-item" style="margin-right: 120px;">
+          <span style="font-size: 42px;">🌲</span>
+          <b style="color: #fff; font-size: 13px;">Туя №102 (Левая сторона)</b>
+          <span style="font-size: 11px; color: #4cd964;">«Посадил аллею у школы»</span>
+        </div>
+        
+        <div class="pano-tree-item" style="border: 2px solid #2ecc71; background: rgba(46,204,113,0.2); margin-left: 60px; margin-right: 60px;">
+          <span style="font-size: 48px;">🌳</span>
+          <b style="color: #fff; font-size: 14px;">Туя №104 (Ваше дерево)</b>
+          <span style="font-size: 11px; color: #ffcc00;">«Создал парк для детей»</span>
+        </div>
+
+        <div class="pano-tree-item" style="margin-left: 120px;">
+          <span style="font-size: 42px;">🌲</span>
+          <b style="color: #fff; font-size: 13px;">Туя №106 (Правая сторона)</b>
+          <span style="font-size: 11px; color: #4cd964;">«Помог построить больницу»</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Нижняя панель -->
+  <div class="bottom-overlay">
+    <div class="search-container">
+      <div class="search-results-popover" id="searchResults">
+        <div class="sheet-header">
+          <span id="searchResultTitle">Результат</span>
+          <div class="close-btn" onclick="closeSearch()">✕</div>
+        </div>
+        <div id="searchResultBody" style="font-size: 13px; color: rgba(255,255,255,0.9);">
+          Введите запрос...
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <input type="text" class="search-input" id="searchInput" placeholder="Поиск (транспорт, погода)...">
+      </div>
+    </div>
+
+    <div class="segmented-control-container">
+      <div class="segmented-track" id="segmentedTrack">
+        <div class="lens-indicator" id="lensIndicator"></div>
+        <button class="segmented-btn" data-type="all">Все</button>
+        <button class="segmented-btn" data-type="walk">Прогулки</button>
+        <button class="segmented-btn" data-type="food">Еда</button>
+        <button class="segmented-btn" data-type="bus">🚌 Транспорт</button>
+        <button class="segmented-btn" data-type="memorial">🌱 Память</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    var otogarCoords = [36.2618, 32.3130];
+    var memorialCoords = [36.2635, 32.3148];
+
+    var map = L.map('map', { zoomControl: false }).setView(otogarCoords, 16);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+    // --- ПРИБРЕЖНЫЕ МАРШРУТЫ (вдоль трассы D400) ---
+    var gal02Coords = [
+      [36.2618, 32.3130],
+      [36.2750, 32.2900],
+      [36.2950, 32.2550],
+      [36.3100, 32.2300],
+      [36.3500, 32.1800],
+      [36.4100, 32.1000],
+      [36.4800, 32.0400],
+      [36.5438, 31.9998]
+    ];
+    var gal02Polyline = L.polyline(gal02Coords, {
+      color: '#007aff', weight: 5, opacity: 0.85, lineCap: 'round', lineJoin: 'round'
+    });
+
+    var gan01Coords = [
+      [36.2618, 32.3130],
+      [36.3100, 32.2300],
+      [36.5438, 31.9998],
+      [36.5800, 31.8500],
+      [36.6800, 31.5500],
+      [36.7800, 31.4500],
+      [36.8500, 31.0500],
+      [36.8969, 30.7133]
+    ];
+    var gan01Polyline = L.polyline(gan01Coords, {
+      color: '#ff3b30', weight: 4, opacity: 0.75, dashArray: '8, 8', lineCap: 'round', lineJoin: 'round'
+    });
+
+    function showTransportRoutes() {
+      if (!map.hasLayer(gal02Polyline)) gal02Polyline.addTo(map);
+      if (!map.hasLayer(gan01Polyline)) gan01Polyline.addTo(map);
+    }
+    function hideTransportRoutes() {
+      if (map.hasLayer(gal02Polyline)) map.removeLayer(gal02Polyline);
+      if (map.hasLayer(gan01Polyline)) map.removeLayer(gan01Polyline);
+    }
+
+    var hubIcon = L.divIcon({
+      html: '<div class="hub-marker" onclick="toggleBusSheet()">🚏 Gazipaşa Merkez</div>',
+      className: '', iconSize: [160, 34], iconAnchor: [80, 17]
+    });
+    L.marker(otogarCoords, { icon: hubIcon }).addTo(map);
+
+    var busIcon = L.divIcon({
+      html: '<div class="bus-marker" onclick="toggleBusSheet()"><span>🚌</span> GAL02 • 06:30</div>',
+      className: '', iconSize: [160, 34], iconAnchor: [80, -20]
+    });
+    L.marker(otogarCoords, { icon: busIcon }).addTo(map);
+
+    var memorialIcon = L.divIcon({
+      html: '<div class="memorial-marker" onclick="toggleMemorialSheet()"><span>🌱</span> Аллея добрых дел</div>',
+      className: '', iconSize: [160, 34], iconAnchor: [80, 17]
+    });
+    L.marker(memorialCoords, { icon: memorialIcon }).addTo(map);
+
+    function syncLensToType(targetType) {
+      buttons.forEach((btn, idx) => {
+        if (btn.getAttribute('data-type') === targetType) {
+          updateLensPosition(idx);
+        }
+      });
+    }
+
+    function toggleBusSheet() {
+      const busSheet = document.getElementById('busSheet');
+      const isOpen = busSheet.classList.toggle('open');
+      
+      document.getElementById('weatherSheet').classList.remove('open');
+      document.getElementById('memorialSheet').classList.remove('open');
+      closeSearch();
+
+      if (isOpen) {
+        syncLensToType('bus');
+        showTransportRoutes();
+      } else {
+        hideTransportRoutes();
+        syncLensToType('all');
+      }
+    }
+
+    function toggleWeatherSheet() {
+      const weatherSheet = document.getElementById('weatherSheet');
+      const isOpen = weatherSheet.classList.toggle('open');
+      
+      document.getElementById('busSheet').classList.remove('open');
+      document.getElementById('memorialSheet').classList.remove('open');
+      hideTransportRoutes();
+      closeSearch();
+      if (!isOpen) syncLensToType('all');
+    }
+
+    function toggleMemorialSheet() {
+      const memorialSheet = document.getElementById('memorialSheet');
+      const isOpen = memorialSheet.classList.toggle('open');
+      
+      document.getElementById('weatherSheet').classList.remove('open');
+      document.getElementById('busSheet').classList.remove('open');
+      hideTransportRoutes();
+      closeSearch();
+
+      if (isOpen) {
+        syncLensToType('memorial');
+      } else {
+        syncLensToType('all');
+      }
+    }
+
+    function openImmersivePano() {
+      document.getElementById('panoModal').classList.add('open');
+    }
+    function closeImmersivePano() {
+      document.getElementById('panoModal').classList.remove('open');
+    }
+
+    function closeSearch() {
+      document.getElementById('searchResults').classList.remove('open');
+    }
+
+    const panoStage = document.getElementById('panoStage');
+    const panoScene = document.getElementById('panoScene');
+    let isPanoDragging = false;
+    let startX = 0;
+    let currentTranslateX = 0;
+    let prevTranslateX = 0;
+
+    panoStage.addEventListener('touchstart', (e) => {
+      isPanoDragging = true;
+      startX = e.touches[0].clientX;
+    });
+
+    panoStage.addEventListener('touchmove', (e) => {
+      if (!isPanoDragging) return;
+      const currentX = e.touches[0].clientX;
+      const diff = currentX - startX;
+      currentTranslateX = Math.max(Math.min(prevTranslateX + diff, 150), -150);
+      panoScene.style.transform = `translateX(${currentTranslateX}px)`;
+    });
+
+    panoStage.addEventListener('touchend', () => {
+      isPanoDragging = false;
+      prevTranslateX = currentTranslateX;
+    });
+
+    panoStage.addEventListener('mousedown', (e) => {
+      isPanoDragging = true;
+      startX = e.clientX;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isPanoDragging) return;
+      const diff = e.clientX - startX;
+      currentTranslateX = Math.max(Math.min(prevTranslateX + diff, 150), -150);
+      panoScene.style.transform = `translateX(${currentTranslateX}px)`;
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isPanoDragging) {
+        isPanoDragging = false;
+        prevTranslateX = currentTranslateX;
+      }
+    });
+
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    const searchResultTitle = document.getElementById('searchResultTitle');
+    const searchResultBody = document.getElementById('searchResultBody');
+
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const query = searchInput.value.toLowerCase().trim();
+        if (!query) return;
+
+        if (query.includes('транспорт') || query.includes('автобус') || query.includes('gal') || query.includes('gan')) {
+          toggleBusSheet();
+        } else if (query.includes('погод') || query.includes('weather')) {
+          toggleWeatherSheet();
+        } else if (query.includes('память') || query.includes('дерев') || query.includes('аллея')) {
+          toggleMemorialSheet();
+        } else {
+          document.getElementById('busSheet').classList.remove('open');
+          document.getElementById('weatherSheet').classList.remove('open');
+          document.getElementById('memorialSheet').classList.remove('open');
+          hideTransportRoutes();
+          searchResultTitle.innerText = '🔍 ' + query;
+          searchResultBody.innerText = 'Найдено в Газипаше по запросу "' + query + '"';
+          searchResults.classList.add('open');
+          syncLensToType('all');
+        }
+        searchInput.blur();
+      }
+    });
+
+    const track = document.getElementById('segmentedTrack');
+    const lens = document.getElementById('lensIndicator');
+    const buttons = document.querySelectorAll('.segmented-btn');
+    let activeIndex = 0;
+    let isPressing = false;
+
+    function updateLensPosition(index) {
+      activeIndex = index;
+      buttons.forEach((b, i) => b.classList.toggle('active', i === index));
+
+      const btn = buttons[index];
+      const btnRect = btn.getBoundingClientRect();
+      const trackRect = track.getBoundingClientRect();
+
+      const leftOffset = btnRect.left - trackRect.left - 4;
+      const scaleStr = isPressing ? ' scale(1.25)' : '';
+      lens.style.transform = `translateX(${leftOffset}px)${scaleStr}`;
+      lens.style.width = `${btnRect.width}px`;
+    }
+
+    function applyCategorySelection(index) {
+      updateLensPosition(index);
+      const btn = buttons[index];
+      const type = btn.getAttribute('data-type');
+      
+      document.getElementById('weatherSheet').classList.remove('open');
+      document.getElementById('busSheet').classList.remove('open');
+      document.getElementById('memorialSheet').classList.remove('open');
+      closeSearch();
+
+      if (type === 'bus') {
+        document.getElementById('busSheet').classList.add('open');
+        showTransportRoutes();
+      } else {
+        hideTransportRoutes();
+        if (type === 'memorial') {
+          document.getElementById('memorialSheet').classList.add('open');
+        }
+      }
+    }
+
+    window.addEventListener('load', () => updateLensPosition(0));
+
+    buttons.forEach((btn, i) => {
+      btn.addEventListener('click', () => applyCategorySelection(i));
+    });
+
+    function handleInputMove(clientX) {
+      buttons.forEach((btn, i) => {
+        const rect = btn.getBoundingClientRect();
+        const extra = 15;
+        if (clientX >= rect.left - extra && clientX <= rect.right + extra) {
+          if (activeIndex !== i) {
+            updateLensPosition(i);
+          }
+        }
+      });
+    }
+
+    track.addEventListener('touchstart', (e) => {
+      isPressing = true;
+      lens.classList.add('pressing');
+      handleInputMove(e.touches[0].clientX);
+    }, { passive: true });
+
+    track.addEventListener('touchmove', (e) => {
+      handleInputMove(e.touches[0].clientX);
+    }, { passive: true });
+
+    track.addEventListener('touchend', () => {
+      isPressing = false;
+      lens.classList.remove('pressing');
+      applyCategorySelection(activeIndex);
+    });
+
+    track.addEventListener('mousedown', (e) => {
+      isPressing = true;
+      lens.classList.add('pressing');
+      handleInputMove(e.clientX);
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isPressing) handleInputMove(e.clientX);
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isPressing) {
+        isPressing = false;
+        lens.classList.remove('pressing');
+        applyCategorySelection(activeIndex);
+      }
+    });
+
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        const CACHE_NAME = 'geoglass-v27';
+        self.addEventListener('install', e => {
+          e.waitUntil(
+            caches.open(CACHE_NAME).then(cache => cache.addAll(['./', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']))
+          );
+        });
+        self.addEventListener('fetch', e => {
+          e.respondWith(
+            caches.match(e.request).then(res => res || fetch(e.request).then(fetchRes => {
+              return caches.open(CACHE_NAME).then(cache => {
+                cache.put(e.request, fetchRes.clone());
+                return fetchRes;
+              });
+            }))
+          );
+        });
+      `;
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.log(err));
+    }
+  </script>
+</body>
+</html>
 
