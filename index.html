@@ -65,7 +65,7 @@
       pointer-events: auto;
     }
 
-    /* Виджет погоды */
+    /* Виджет погоды (Liquid Glass) */
     .weather-card {
       display: flex;
       align-items: center;
@@ -170,7 +170,7 @@
       outline: none;
     }
 
-    /* ЕДИНАЯ ПЛАШКА В СТИЛЕ iOS VISION (Liquid Glass Track) */
+    /* Единый контейнер категорий */
     .segmented-control-container {
       width: 100%;
       overflow-x: auto;
@@ -193,30 +193,29 @@
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
     }
 
-    /* Плавающая объёмная «Линза-Лупа» (Glass Lens Indicator) */
+    /* Плавающая линза с эффектом увеличения (scale) при удержании */
     .lens-indicator {
       position: absolute;
       top: 4px;
       left: 4px;
       height: calc(100% - 8px);
-      background: rgba(255, 255, 255, 0.22);
-      backdrop-filter: blur(25px) saturate(180%);
-      -webkit-backdrop-filter: blur(25px) saturate(180%);
-      border: 1.5px solid rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.28);
+      backdrop-filter: blur(25px) saturate(190%);
+      -webkit-backdrop-filter: blur(25px) saturate(190%);
+      border: 1.5px solid rgba(255, 255, 255, 0.65);
       border-radius: 24px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35), inset 0 0 12px rgba(255, 255, 255, 0.4);
-      transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1), width 0.28s cubic-bezier(0.25, 1, 0.5, 1);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 0 12px rgba(255, 255, 255, 0.4);
+      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
       pointer-events: none;
       z-index: 1;
+      transform-origin: center;
     }
 
-    /* Блик на линзе */
-    .lens-indicator::after {
-      content: '';
-      position: absolute;
-      top: -50%; left: -50%; width: 200%; height: 200%;
-      background: linear-gradient(60deg, transparent 45%, rgba(255,255,255,0.4) 50%, transparent 55%);
-      pointer-events: none;
+    /* Состояние увеличения при удержании/нажатии */
+    .lens-indicator.pressing {
+      transform: scale(1.15) !important;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), inset 0 0 16px rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.38);
     }
 
     .segmented-btn {
@@ -230,7 +229,7 @@
       font-weight: 600;
       white-space: nowrap;
       cursor: pointer;
-      transition: color 0.2s ease, transform 0.15s ease;
+      transition: color 0.2s ease;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -239,7 +238,7 @@
     .segmented-btn.active {
       color: #ffffff;
       font-weight: 700;
-      text-shadow: 0 0 10px rgba(255,255,255,0.5);
+      text-shadow: 0 0 8px rgba(255,255,255,0.4);
     }
 
     /* Выдвижные окна */
@@ -365,7 +364,6 @@
       <input type="text" class="search-input" placeholder="Поиск остановок и мест...">
     </div>
 
-    <!-- Объединенная полоса категорий с анимированной плавающей лупой -->
     <div class="segmented-control-container">
       <div class="segmented-track" id="segmentedTrack">
         <div class="lens-indicator" id="lensIndicator"></div>
@@ -380,13 +378,12 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    var map = L.map('map', { zoomControl: false }).setView([36.2618, 32.3130], 16);
+    var otogarCoords = [36.2618, 32.3130];
+    var map = L.map('map', { zoomControl: false }).setView(otogarCoords, 16);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19
     }).addTo(map);
-
-    var otogarCoords = [36.2618, 32.3130];
 
     var hubIcon = L.divIcon({
       html: '<div class="hub-marker" onclick="toggleBusSheet()">🚏 Gazipaşa Otogar</div>',
@@ -414,7 +411,7 @@
       document.getElementById('weatherSheet').classList.toggle('open');
     }
 
-    /* Логика линзы-лупы с жестным скольжением пальца */
+    /* Логика линзы с эффектом увеличения при удержании и перетаскивании */
     const track = document.getElementById('segmentedTrack');
     const lens = document.getElementById('lensIndicator');
     const buttons = document.querySelectorAll('.segmented-btn');
@@ -427,7 +424,8 @@
       const trackRect = track.getBoundingClientRect();
 
       const leftOffset = btnRect.left - trackRect.left - 4;
-      lens.style.transform = `translateX(${leftOffset}px)`;
+      const scaleStr = lens.classList.contains('pressing') ? ' scale(1.15)' : '';
+      lens.style.transform = `translateX(${leftOffset}px)${scaleStr}`;
       lens.style.width = `${btnRect.width}px`;
 
       const type = btn.getAttribute('data-type');
@@ -439,38 +437,62 @@
       }
     }
 
-    // Первоначальное позиционирование
     window.addEventListener('load', () => updateLens(buttons[0]));
 
-    // Клик по разделу
     buttons.forEach(btn => {
       btn.addEventListener('click', () => updateLens(btn));
     });
 
-    // Обработка ведения пальцем / свайпа (Drag Lens)
-    let isDragging = false;
+    let isPressing = false;
 
-    function handleTouchMove(e) {
-      if (!isDragging) return;
-      const touch = e.touches ? e.touches[0] : e;
-      const x = touch.clientX;
-
+    function handleMove(clientX) {
+      if (!isPressing) return;
       buttons.forEach(btn => {
         const rect = btn.getBoundingClientRect();
-        if (x >= rect.left && x <= rect.right) {
+        if (clientX >= rect.left && clientX <= rect.right) {
           updateLens(btn);
         }
       });
     }
 
-    track.addEventListener('touchstart', (e) => { isDragging = true; handleTouchMove(e); }, { passive: true });
-    track.addEventListener('touchmove', handleTouchMove, { passive: true });
-    track.addEventListener('touchend', () => { isDragging = false; });
+    track.addEventListener('touchstart', (e) => {
+      isPressing = true;
+      lens.classList.add('pressing');
+      handleMove(e.touches[0].clientX);
+    }, { passive: true });
 
-    // Service Worker для офлайн-режима
+    track.addEventListener('touchmove', (e) => {
+      handleMove(e.touches[0].clientX);
+    }, { passive: true });
+
+    track.addEventListener('touchend', () => {
+      isPressing = false;
+      lens.classList.remove('pressing');
+      const activeBtn = document.querySelector('.segmented-btn.active');
+      if (activeBtn) updateLens(activeBtn);
+    });
+
+    // Для удобства проверки на ПК мышкой
+    track.addEventListener('mousedown', (e) => {
+      isPressing = true;
+      lens.classList.add('pressing');
+      handleMove(e.clientX);
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (isPressing) handleMove(e.clientX);
+    });
+    window.addEventListener('mouseup', () => {
+      if (isPressing) {
+        isPressing = false;
+        lens.classList.remove('pressing');
+        const activeBtn = document.querySelector('.segmented-btn.active');
+        if (activeBtn) updateLens(activeBtn);
+      }
+    });
+
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v4';
+        const CACHE_NAME = 'geoglass-v6';
         self.addEventListener('install', e => {
           e.waitUntil(
             caches.open(CACHE_NAME).then(cache => {
