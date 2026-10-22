@@ -177,7 +177,7 @@
     }
     .segmented-btn.active { color: #ffffff; font-weight: 700; text-shadow: 0 0 8px rgba(255,255,255,0.4); }
 
-    /* Модальные окна (приподняты выше, чтобы не задевать воздушный бар) */
+    /* Модальные окна */
     .glass-sheet {
       position: absolute; bottom: 115px; left: 16px; right: 16px;
       background: rgba(15, 34, 61, 0.75); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
@@ -428,7 +428,7 @@
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
-    // --- РЕАЛИСТИЧНЫЕ ПРИБРЕЖНЫЕ МАРШРУТЫ (вдоль трассы D400) ---
+    // --- ПРИБРЕЖНЫЕ МАРШРУТЫ (вдоль трассы D400) ---
     var gal02Coords = [
       [36.2618, 32.3130],
       [36.2750, 32.2900],
@@ -492,34 +492,49 @@
       });
     }
 
+    // --- УПРАВЛЕНИЕ СОСТОЯНИЕМ ОКОН И СИНХРОНИЗАЦИЯ ЛИНЗЫ ---
     function toggleBusSheet() {
+      const busSheet = document.getElementById('busSheet');
+      const isOpen = busSheet.classList.toggle('open');
+      
       document.getElementById('weatherSheet').classList.remove('open');
       document.getElementById('memorialSheet').classList.remove('open');
       closeSearch();
-      const isOpen = document.getElementById('busSheet').classList.toggle('open');
+
       if (isOpen) {
         syncLensToType('bus');
         showTransportRoutes();
       } else {
         hideTransportRoutes();
+        syncLensToType('all');
       }
     }
 
     function toggleWeatherSheet() {
+      const weatherSheet = document.getElementById('weatherSheet');
+      const isOpen = weatherSheet.classList.toggle('open');
+      
       document.getElementById('busSheet').classList.remove('open');
       document.getElementById('memorialSheet').classList.remove('open');
       hideTransportRoutes();
       closeSearch();
-      document.getElementById('weatherSheet').classList.toggle('open');
+      if (!isOpen) syncLensToType('all');
     }
 
     function toggleMemorialSheet() {
+      const memorialSheet = document.getElementById('memorialSheet');
+      const isOpen = memorialSheet.classList.toggle('open');
+      
       document.getElementById('weatherSheet').classList.remove('open');
       document.getElementById('busSheet').classList.remove('open');
       hideTransportRoutes();
       closeSearch();
-      const isOpen = document.getElementById('memorialSheet').classList.toggle('open');
-      if (isOpen) syncLensToType('memorial');
+
+      if (isOpen) {
+        syncLensToType('memorial');
+      } else {
+        syncLensToType('all');
+      }
     }
 
     function openImmersivePano() {
@@ -601,6 +616,7 @@
           searchResultTitle.innerText = '🔍 ' + query;
           searchResultBody.innerText = 'Найдено в Газипаше по запросу "' + query + '"';
           searchResults.classList.add('open');
+          syncLensToType('all');
         }
         searchInput.blur();
       }
@@ -701,7 +717,7 @@
 
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v24';
+        const CACHE_NAME = 'geoglass-v25';
         self.addEventListener('install', e => {
           e.waitUntil(
             caches.open(CACHE_NAME).then(cache => cache.addAll(['./', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']))
