@@ -26,7 +26,7 @@
 
     body, html {
       width: 100%;
-      height: 100dvh;
+      height: 100%;
       overflow: hidden;
       background-color: #0b131e;
     }
@@ -115,10 +115,10 @@
     }
     .sun-cycle-time { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.8); font-weight: 600; }
 
-    /* Нижняя панель (поднята выше для учета панели Safari) */
+    /* Нижняя панель (автоматически учитывает нижнюю панель Safari и safe-area) */
     .bottom-overlay {
       position: absolute;
-      bottom: max(45px, env(safe-area-inset-bottom));
+      bottom: calc(env(safe-area-inset-bottom) + 70px);
       left: 16px; right: 16px;
       z-index: 10; pointer-events: none;
     }
@@ -177,9 +177,9 @@
     }
     .segmented-btn.active { color: #ffffff; font-weight: 700; text-shadow: 0 0 8px rgba(255,255,255,0.4); }
 
-    /* Модальные окна (безопасное смещение выше нижней панели) */
+    /* Модальные окна (аккуратный отступ над нижней панелью) */
     .glass-sheet {
-      position: absolute; bottom: 130px; left: 16px; right: 16px;
+      position: absolute; bottom: 145px; left: 16px; right: 16px;
       background: rgba(15, 34, 61, 0.75); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
       border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 24px; padding: 18px; color: #fff;
       box-shadow: 0 15px 35px rgba(0,0,0,0.5); z-index: 20; opacity: 0; transform: translateY(25px) scale(0.96);
@@ -716,7 +716,7 @@
 
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v26';
+        const CACHE_NAME = 'geoglass-v27';
         self.addEventListener('install', e => {
           e.waitUntil(
             caches.open(CACHE_NAME).then(cache => cache.addAll(['./', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']))
