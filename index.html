@@ -40,8 +40,9 @@
       background: #0b131e;
     }
 
+    /* Убираем старый фильтр инверсии, так как CartoDB Dark Matter уже темная */
     .leaflet-tile {
-      filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3);
+      opacity: 0.92;
     }
 
     .leaflet-control-attribution {
@@ -409,7 +410,11 @@
 
     var map = L.map('map', { zoomControl: false }).setView(otogarCoords, 16);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+    // Подключаем премиальную темную карту CartoDB Dark Matter
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      subdomains: 'abcd'
+    }).addTo(map);
 
     var hubIcon = L.divIcon({
       html: '<div class="hub-marker" onclick="toggleBusSheet()">🚏 Gazipaşa Otogar</div>',
@@ -429,7 +434,6 @@
     });
     L.marker(memorialCoords, { icon: memorialIcon }).addTo(map);
 
-    /* Функция синхронизации линзы по типу категории */
     function syncLensToType(targetType) {
       buttons.forEach((btn, idx) => {
         if (btn.getAttribute('data-type') === targetType) {
@@ -545,7 +549,6 @@
       }
     });
 
-    /* Увеличенная линза с расширенной зоной захвата */
     const track = document.getElementById('segmentedTrack');
     const lens = document.getElementById('lensIndicator');
     const buttons = document.querySelectorAll('.segmented-btn');
@@ -637,7 +640,7 @@
 
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v17';
+        const CACHE_NAME = 'geoglass-v18';
         self.addEventListener('install', e => {
           e.waitUntil(
             caches.open(CACHE_NAME).then(cache => cache.addAll(['./', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']))
