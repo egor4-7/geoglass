@@ -35,8 +35,7 @@
       width: 100%;
       height: 100%;
       position: absolute;
-      top: 0;
-      left: 0;
+      top: 0; left: 0;
       z-index: 1;
       background: #0b131e;
     }
@@ -52,431 +51,202 @@
     /* Верхняя панель */
     .top-overlay {
       position: absolute;
-      top: 16px;
-      left: 16px;
-      right: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      z-index: 10;
-      pointer-events: none;
+      top: 16px; left: 16px; right: 16px;
+      display: flex; flex-direction: column; align-items: flex-start;
+      z-index: 10; pointer-events: none;
     }
-
-    .top-overlay > * {
-      pointer-events: auto;
-    }
+    .top-overlay > * { pointer-events: auto; }
 
     /* Виджет погоды */
     .weather-card {
-      display: flex;
-      align-items: center;
-      background: rgba(15, 34, 61, 0.45);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      padding: 10px 16px;
-      border-radius: 22px;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-      color: #ffffff;
-      font-weight: 700;
-      font-size: 14px;
-      gap: 12px;
-      cursor: pointer;
-      transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      display: flex; align-items: center;
+      background: rgba(15, 34, 61, 0.45); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      padding: 10px 16px; border-radius: 22px; border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); color: #ffffff; font-weight: 700; font-size: 14px; gap: 12px;
+      cursor: pointer; transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
+    .weather-card:active { transform: scale(0.96); }
 
-    .weather-card:active {
-      transform: scale(0.96);
-    }
-
-    .liquid-weather-icon {
-      width: 28px;
-      height: 28px;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
+    .liquid-weather-icon { width: 28px; height: 28px; position: relative; display: flex; align-items: center; justify-content: center; }
     .liquid-sun {
-      position: absolute;
-      top: 1px; left: 1px;
-      width: 18px; height: 18px;
-      background: radial-gradient(circle, #ffea00 0%, #ff9900 100%);
-      border-radius: 50%;
-      box-shadow: 0 0 10px rgba(255, 200, 0, 0.8);
-      animation: pulseSun 3s ease-in-out infinite;
+      position: absolute; top: 1px; left: 1px; width: 18px; height: 18px;
+      background: radial-gradient(circle, #ffea00 0%, #ff9900 100%); border-radius: 50%;
+      box-shadow: 0 0 10px rgba(255, 200, 0, 0.8); animation: pulseSun 3s ease-in-out infinite;
     }
-
     .liquid-cloud {
-      position: absolute;
-      bottom: 1px; right: 0px;
-      width: 22px; height: 14px;
-      background: rgba(255, 255, 255, 0.88);
-      backdrop-filter: blur(1px);
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.6);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      position: absolute; bottom: 1px; right: 0px; width: 22px; height: 14px;
+      background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(1px); border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
       animation: floatCloud 2.5s ease-in-out infinite;
     }
 
-    @keyframes pulseSun {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.15); }
-    }
+    @keyframes pulseSun { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+    @keyframes floatCloud { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(2px); } }
 
-    @keyframes floatCloud {
-      0%, 100% { transform: translateX(0); }
-      50% { transform: translateX(2px); }
-    }
+    .mini-icon { width: 14px; height: 14px; position: relative; display: inline-block; vertical-align: middle; margin-right: 6px; }
+    .mini-sun { background: radial-gradient(circle, #ffea00 0%, #ff9900 100%); border-radius: 50%; box-shadow: 0 0 6px rgba(255, 200, 0, 0.9); }
+    .mini-moon { background: radial-gradient(circle, #c2e9fb 0%, #a1c4fd 100%); border-radius: 50%; box-shadow: 0 0 6px rgba(160, 200, 255, 0.7); }
+    .mini-water { background: radial-gradient(circle, #00c6ff 0%, #0072ff 100%); border-radius: 50%; box-shadow: 0 0 6px rgba(0, 150, 255, 0.7); }
 
-    /* Фирменные мини-иконки погоды без эмодзи */
-    .mini-icon {
-      width: 14px;
-      height: 14px;
-      position: relative;
-      display: inline-block;
-      vertical-align: middle;
-      margin-right: 6px;
-    }
-    .mini-sun {
-      background: radial-gradient(circle, #ffea00 0%, #ff9900 100%);
-      border-radius: 50%;
-      box-shadow: 0 0 6px rgba(255, 200, 0, 0.9);
-    }
-    .mini-moon {
-      background: radial-gradient(circle, #c2e9fb 0%, #a1c4fd 100%);
-      border-radius: 50%;
-      box-shadow: 0 0 6px rgba(160, 200, 255, 0.7);
-    }
-    .mini-water {
-      background: radial-gradient(circle, #00c6ff 0%, #0072ff 100%);
-      border-radius: 50%;
-      box-shadow: 0 0 6px rgba(0, 150, 255, 0.7);
-    }
-
-    /* Подробное окно погоды рядом с виджетом */
+    /* Погода поповер */
     .weather-popover {
-      position: absolute;
-      top: 60px;
-      left: 0;
-      width: 320px;
-      background: rgba(15, 34, 61, 0.65);
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 24px;
-      padding: 16px;
-      color: #fff;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-      z-index: 25;
-      opacity: 0;
-      transform: translateY(-10px) scale(0.92);
-      transform-origin: top left;
-      pointer-events: none;
+      position: absolute; top: 60px; left: 0; width: 320px;
+      background: rgba(15, 34, 61, 0.65); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 24px; padding: 16px; color: #fff;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5); z-index: 25; opacity: 0;
+      transform: translateY(-10px) scale(0.92); transform-origin: top left; pointer-events: none;
       transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     }
+    .weather-popover.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 
-    .weather-popover.open {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-      pointer-events: auto;
-    }
-
-    /* Шкала Рассвет / Закат */
     .sun-cycle-container {
-      margin-top: 10px;
-      padding: 10px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-top: 10px; padding: 10px; background: rgba(255, 255, 255, 0.08);
+      border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1);
     }
-
     .sun-cycle-bar {
-      position: relative;
-      width: 100%;
-      height: 4px;
+      position: relative; width: 100%; height: 4px;
       background: linear-gradient(90deg, #ff7e5f 0%, #feb47b 50%, #4a90e2 100%);
-      border-radius: 2px;
-      margin: 12px 0 6px 0;
+      border-radius: 2px; margin: 12px 0 6px 0;
     }
-
     .sun-cycle-dot {
-      position: absolute;
-      top: -5px;
-      left: 70%;
-      width: 14px;
-      height: 14px;
-      background: #ffcc00;
-      border: 2px solid #ffffff;
-      border-radius: 50%;
-      box-shadow: 0 0 8px #ffcc00;
+      position: absolute; top: -5px; left: 70%; width: 14px; height: 14px;
+      background: #ffcc00; border: 2px solid #ffffff; border-radius: 50%; box-shadow: 0 0 8px #ffcc00;
     }
-
-    .sun-cycle-time {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.8);
-      font-weight: 600;
-    }
+    .sun-cycle-time { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.8); font-weight: 600; }
 
     /* Нижняя панель */
-    .bottom-overlay {
-      position: absolute;
-      bottom: 24px;
-      left: 16px;
-      right: 16px;
-      z-index: 10;
-      pointer-events: none;
-    }
+    .bottom-overlay { position: absolute; bottom: 24px; left: 16px; right: 16px; z-index: 10; pointer-events: none; }
+    .bottom-overlay > * { pointer-events: auto; }
 
-    .bottom-overlay > * {
-      pointer-events: auto;
-    }
-
-    /* Поиск */
-    .search-container {
-      position: relative;
-      width: 240px;
-      margin-bottom: 12px;
-    }
-
+    .search-container { position: relative; width: 240px; margin-bottom: 12px; }
     .search-bar {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      background: rgba(15, 34, 61, 0.45);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-radius: 26px;
-      padding: 10px 16px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      display: flex; align-items: center; width: 100%;
+      background: rgba(15, 34, 61, 0.45); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-radius: 26px; padding: 10px 16px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
       border: 1px solid rgba(255, 255, 255, 0.3);
-      transition: border-color 0.25s ease, box-shadow 0.25s ease;
     }
-
-    .search-bar:focus-within {
-      border-color: rgba(255, 255, 255, 0.6);
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.25);
-    }
-
     .search-input {
-      flex: 1;
-      border: none;
-      background: transparent;
-      font-size: 14px;
-      color: #ffffff;
-      font-weight: 600;
-      outline: none;
-      user-select: text;
-      -webkit-user-select: text;
+      flex: 1; border: none; background: transparent; font-size: 14px; color: #ffffff; font-weight: 600; outline: none; user-select: text; -webkit-user-select: text;
     }
-
-    .search-input::placeholder {
-      color: rgba(255, 255, 255, 0.55);
-    }
+    .search-input::placeholder { color: rgba(255, 255, 255, 0.55); }
 
     .search-results-popover {
-      position: absolute;
-      bottom: 54px;
-      left: 0;
-      width: 280px;
-      background: rgba(15, 34, 61, 0.65);
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 20px;
-      padding: 14px;
-      color: #ffffff;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
-      opacity: 0;
-      transform: translateY(15px) scale(0.95);
-      pointer-events: none;
-      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: absolute; bottom: 54px; left: 0; width: 280px;
+      background: rgba(15, 34, 61, 0.65); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 20px; padding: 14px; color: #ffffff;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5); opacity: 0; transform: translateY(15px) scale(0.95);
+      pointer-events: none; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
-
-    .search-results-popover.open {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-      pointer-events: auto;
-    }
+    .search-results-popover.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 
     /* Бар категорий */
-    .segmented-control-container {
-      width: 100%;
-      overflow-x: auto;
-      scrollbar-width: none;
-      padding-bottom: 4px;
-    }
-    .segmented-control-container::-webkit-scrollbar {
-      display: none;
-    }
+    .segmented-control-container { width: 100%; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+    .segmented-control-container::-webkit-scrollbar { display: none; }
 
     .segmented-track {
-      position: relative;
-      display: inline-flex;
-      background: rgba(15, 34, 61, 0.45);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 28px;
-      padding: 4px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-      touch-action: none;
+      position: relative; display: inline-flex;
+      background: rgba(15, 34, 61, 0.45); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 28px; padding: 4px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4); touch-action: none;
     }
 
     .lens-indicator {
-      position: absolute;
-      top: 4px; left: 4px;
-      height: calc(100% - 8px);
-      background: rgba(255, 255, 255, 0.25);
-      backdrop-filter: blur(25px) saturate(190%);
-      -webkit-backdrop-filter: blur(25px) saturate(190%);
-      border: 1.5px solid rgba(255, 255, 255, 0.65);
-      border-radius: 24px;
+      position: absolute; top: 4px; left: 4px; height: calc(100% - 8px);
+      background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(25px) saturate(190%); -webkit-backdrop-filter: blur(25px) saturate(190%);
+      border: 1.5px solid rgba(255, 255, 255, 0.65); border-radius: 24px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 0 12px rgba(255, 255, 255, 0.4);
       transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
-      pointer-events: none;
-      z-index: 1;
-      transform-origin: center;
+      pointer-events: none; z-index: 1; transform-origin: center;
     }
-
     .lens-indicator.pressing {
-      transform: scale(1.15) !important;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), inset 0 0 16px rgba(255, 255, 255, 0.6);
+      transform: scale(1.15) !important; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), inset 0 0 16px rgba(255, 255, 255, 0.6);
       background: rgba(255, 255, 255, 0.38);
     }
 
     .segmented-btn {
-      position: relative;
-      z-index: 2;
-      background: transparent;
-      border: none;
-      color: rgba(255, 255, 255, 0.7);
-      padding: 10px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      white-space: nowrap;
-      cursor: pointer;
-      transition: color 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      position: relative; z-index: 2; background: transparent; border: none;
+      color: rgba(255, 255, 255, 0.7); padding: 10px 16px; font-size: 13px; font-weight: 600;
+      white-space: nowrap; cursor: pointer; transition: color 0.2s ease; display: flex; align-items: center; gap: 6px;
     }
-
-    .segmented-btn.active {
-      color: #ffffff;
-      font-weight: 700;
-      text-shadow: 0 0 8px rgba(255,255,255,0.4);
-    }
+    .segmented-btn.active { color: #ffffff; font-weight: 700; text-shadow: 0 0 8px rgba(255,255,255,0.4); }
 
     /* Модальные окна */
     .glass-sheet {
-      position: absolute;
-      bottom: 90px;
-      left: 16px;
-      right: 16px;
-      background: rgba(15, 34, 61, 0.75);
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 24px;
-      padding: 18px;
-      color: #fff;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-      z-index: 20;
-      opacity: 0;
-      transform: translateY(25px) scale(0.96);
-      pointer-events: none;
-      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: absolute; bottom: 90px; left: 16px; right: 16px;
+      background: rgba(15, 34, 61, 0.75); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 24px; padding: 18px; color: #fff;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5); z-index: 20; opacity: 0; transform: translateY(25px) scale(0.96);
+      pointer-events: none; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
+    .glass-sheet.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 
-    .glass-sheet.open {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-      pointer-events: auto;
-    }
-
-    .sheet-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      font-weight: 700;
-      font-size: 16px;
-    }
+    .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: 700; font-size: 16px; }
 
     .close-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.18);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      border: 1.5px solid rgba(255, 255, 255, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 16px;
-      color: #ffffff;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      transition: transform 0.2s ease;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+      border: 1.5px solid rgba(255, 255, 255, 0.5); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 16px; color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: transform 0.2s ease;
     }
+    .close-btn:active { transform: scale(0.9); }
 
-    .close-btn:active {
-      transform: scale(0.9);
-    }
-
-    .sheet-list {
-      max-height: 180px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
+    .sheet-list { max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
     .sheet-item {
-      display: flex;
-      justify-content: space-between;
-      background: rgba(255, 255, 255, 0.08);
-      padding: 10px 14px;
-      border-radius: 12px;
-      align-items: center;
-      font-size: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex; justify-content: space-between; background: rgba(255, 255, 255, 0.08);
+      padding: 10px 14px; border-radius: 12px; align-items: center; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .badge-gal { background: #0056b3; padding: 4px 8px; border-radius: 8px; font-weight: bold; font-size: 12px; }
     .badge-gan { background: #d9534f; padding: 4px 8px; border-radius: 8px; font-weight: bold; font-size: 12px; }
 
     .bus-marker, .hub-marker, .memorial-marker {
-      background: rgba(40, 167, 69, 0.85);
-      backdrop-filter: blur(10px);
-      border: 2px solid rgba(255, 255, 255, 0.9);
-      border-radius: 20px;
-      color: white;
-      padding: 6px 12px;
-      font-weight: 700;
-      font-size: 13px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-      white-space: nowrap;
-      cursor: pointer;
+      background: rgba(40, 167, 69, 0.85); backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.9); border-radius: 20px; color: white;
+      padding: 6px 12px; font-weight: 700; font-size: 13px; box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+      white-space: nowrap; cursor: pointer;
     }
-
     .hub-marker { background: rgba(0, 86, 179, 0.85); }
     .memorial-marker { background: rgba(46, 204, 113, 0.9); }
 
+    /* Интерактивная 3D панорама превью */
     .panorama-preview {
-      width: 100%; height: 140px; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #2ecc71 100%);
+      width: 100%; height: 140px;
+      background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 50%, #2ecc71 100%);
       border-radius: 16px; margin-bottom: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center;
       position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.3); box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+      cursor: pointer; transition: transform 0.2s;
     }
-    .tree-icon-3d { font-size: 36px; animation: floatTree 3s ease-in-out infinite; }
-    @keyframes floatTree {
-      0%, 100% { transform: translateY(0) scale(1); }
-      50% { transform: translateY(-4px) scale(1.05); }
+    .panorama-preview:active { transform: scale(0.98); }
+    .tree-icon-3d { font-size: 38px; animation: floatTree 3s ease-in-out infinite; }
+    @keyframes floatTree { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-5px) scale(1.08); } }
+
+    /* Полноэкранный 3D Иммерсивный просмотрщик панорамы */
+    .immersive-pano-modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(5, 10, 20, 0.85); backdrop-filter: blur(35px); -webkit-backdrop-filter: blur(35px);
+      z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.35s ease;
+    }
+    .immersive-pano-modal.open { opacity: 1; pointer-events: auto; }
+
+    .pano-stage {
+      position: relative; width: 90%; max-width: 600px; height: 360px;
+      background: radial-gradient(circle at center, #1b4332 0%, #081c15 100%);
+      border-radius: 28px; border: 1.5px solid rgba(255,255,255,0.4);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(46,204,113,0.2);
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
+      touch-action: pan-x; cursor: grab;
+    }
+    .pano-stage:active { cursor: grabbing; }
+
+    .pano-scene-content {
+      position: absolute; width: 200%; height: 100%; display: flex; align-items: center; justify-content: space-around;
+      transition: transform 0.1s ease-out;
+    }
+    .pano-tree-item {
+      display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 20px;
+      background: rgba(255,255,255,0.06); backdrop-filter: blur(10px); border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
   </style>
 </head>
@@ -494,28 +264,18 @@
       <span>+28°C</span>
     </div>
 
-    <!-- Детализированная погода без эмодзи -->
+    <!-- Погода поповер -->
     <div class="weather-popover" id="weatherSheet">
       <div class="sheet-header">
         <span><span class="mini-icon mini-sun"></span>Погода: Газипаша</span>
         <div class="close-btn" onclick="toggleWeatherSheet()">✕</div>
       </div>
       <div class="sheet-list">
-        <div class="sheet-item">
-          <span>Сейчас</span>
-          <span><span class="mini-icon mini-sun"></span>+28°C, Ясно</span>
-        </div>
-        <div class="sheet-item">
-          <span>Ночь</span>
-          <span><span class="mini-icon mini-moon"></span>+21°C, Ветер</span>
-        </div>
-        <div class="sheet-item">
-          <span>Температура воды</span>
-          <span><span class="mini-icon mini-water"></span>+25°C</span>
-        </div>
+        <div class="sheet-item"><span>Сейчас</span><span><span class="mini-icon mini-sun"></span>+28°C, Ясно</span></div>
+        <div class="sheet-item"><span>Ночь</span><span><span class="mini-icon mini-moon"></span>+21°C, Ветер</span></div>
+        <div class="sheet-item"><span>Температура воды</span><span><span class="mini-icon mini-water"></span>+25°C</span></div>
       </div>
       
-      <!-- Шкала Рассвет / Закат с мини-иконками вместо эмодзи -->
       <div class="sun-cycle-container">
         <div class="sun-cycle-time">
           <span><span class="mini-icon mini-sun"></span>Восход 06:58</span>
@@ -543,17 +303,18 @@
     </div>
   </div>
 
-  <!-- Окно пасхалки: Аллея добрых дел (Панорама 3D) -->
+  <!-- Окно пасхалки: Аллея добрых дел -->
   <div class="glass-sheet" id="memorialSheet">
     <div class="sheet-header">
       <span>🌱 Аллея добрых дел (Hatıra Ormanı)</span>
       <div class="close-btn" onclick="toggleMemorialSheet()">✕</div>
     </div>
     
-    <div class="panorama-preview">
+    <!-- Кликабельное превью для открытия 3D панорамы -->
+    <div class="panorama-preview" onclick="openImmersivePano()">
       <div class="tree-icon-3d">🌳</div>
-      <div style="font-size: 12px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 10px; margin-top: 6px;">
-        Панорамный вид 3D • Туя №104
+      <div style="font-size: 13px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 5px 14px; border-radius: 12px; margin-top: 6px; border: 1px solid rgba(255,255,255,0.3);">
+        🌐 Нажмите для запуска 3D-панорамы аллеи
       </div>
     </div>
 
@@ -568,6 +329,34 @@
       <div class="sheet-item">
         <span>Памятная табличка</span>
         <span style="font-size: 12px; color: rgba(255,255,255,0.8);">«Создал парк для детей, посадил 50 деревьев»</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Полноэкранный 3D Иммерсивный просмотрщик панорамы -->
+  <div class="immersive-pano-modal" id="panoModal">
+    <div style="width: 90%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; color: #fff;">
+      <span style="font-weight: 700; font-size: 16px;">🌿 3D Панорама аллеи (Свайпайте для обзора)</span>
+      <div class="close-btn" onclick="closeImmersivePano()">✕</div>
+    </div>
+    
+    <div class="pano-stage" id="panoStage">
+      <div class="pano-scene-content" id="panoScene">
+        <div class="pano-tree-item">
+          <span style="font-size: 48px;">🌲</span>
+          <b style="color: #fff; font-size: 14px;">Туя №102</b>
+          <span style="font-size: 11px; color: #4cd964;">«Посадил аллею у школы»</span>
+        </div>
+        <div class="pano-tree-item" style="border: 2px solid #2ecc71; background: rgba(46,204,113,0.15);">
+          <span style="font-size: 56px;">🌳</span>
+          <b style="color: #fff; font-size: 15px;">Туя №104 (Ваше дерево)</b>
+          <span style="font-size: 11px; color: #ffcc00;">«Создал парк для детей»</span>
+        </div>
+        <div class="pano-tree-item">
+          <span style="font-size: 48px;">🌲</span>
+          <b style="color: #fff; font-size: 14px;">Туя №106</b>
+          <span style="font-size: 11px; color: #4cd964;">«Помог построить больницу»</span>
+        </div>
       </div>
     </div>
   </div>
@@ -650,9 +439,61 @@
       document.getElementById('memorialSheet').classList.toggle('open');
     }
 
+    function openImmersivePano() {
+      document.getElementById('panoModal').classList.add('open');
+    }
+    function closeImmersivePano() {
+      document.getElementById('panoModal').classList.remove('open');
+    }
+
     function closeSearch() {
       document.getElementById('searchResults').classList.remove('open');
     }
+
+    /* Логика вращения 3D Панорамы свайпом/мышкой */
+    const panoStage = document.getElementById('panoStage');
+    const panoScene = document.getElementById('panoScene');
+    let isPanoDragging = false;
+    let startX = 0;
+    let currentTranslateX = 0;
+    let prevTranslateX = 0;
+
+    panoStage.addEventListener('touchstart', (e) => {
+      isPanoDragging = true;
+      startX = e.touches[0].clientX;
+    });
+
+    panoStage.addEventListener('touchmove', (e) => {
+      if (!isPanoDragging) return;
+      const currentX = e.touches[0].clientX;
+      const diff = currentX - startX;
+      currentTranslateX = Math.max(Math.min(prevTranslateX + diff, 100), -100);
+      panoScene.style.transform = `translateX(${currentTranslateX}px)`;
+    });
+
+    panoStage.addEventListener('touchend', () => {
+      isPanoDragging = false;
+      prevTranslateX = currentTranslateX;
+    });
+
+    panoStage.addEventListener('mousedown', (e) => {
+      isPanoDragging = true;
+      startX = e.clientX;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isPanoDragging) return;
+      const diff = e.clientX - startX;
+      currentTranslateX = Math.max(Math.min(prevTranslateX + diff, 100), -100);
+      panoScene.style.transform = `translateX(${currentTranslateX}px)`;
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isPanoDragging) {
+        isPanoDragging = false;
+        prevTranslateX = currentTranslateX;
+      }
+    });
 
     const searchInput = document.getElementById('searchInput');
     const searchResults = document.getElementById('searchResults');
@@ -772,7 +613,7 @@
 
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v13';
+        const CACHE_NAME = 'geoglass-v14';
         self.addEventListener('install', e => {
           e.waitUntil(
             caches.open(CACHE_NAME).then(cache => cache.addAll(['./', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']))
