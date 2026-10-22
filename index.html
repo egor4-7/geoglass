@@ -40,9 +40,9 @@
       background: #0b131e;
     }
 
-    /* Убираем старый фильтр инверсии, так как CartoDB Dark Matter уже темная */
+    /* Фирменный глубокий темно-синий тон visionOS для карты */
     .leaflet-tile {
-      opacity: 0.92;
+      filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3);
     }
 
     .leaflet-control-attribution {
@@ -410,11 +410,8 @@
 
     var map = L.map('map', { zoomControl: false }).setView(otogarCoords, 16);
 
-    // Подключаем премиальную темную карту CartoDB Dark Matter
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19,
-      subdomains: 'abcd'
-    }).addTo(map);
+    // Стандартные тайлы OSM с глубоким темным фильтром visionOS
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
     var hubIcon = L.divIcon({
       html: '<div class="hub-marker" onclick="toggleBusSheet()">🚏 Gazipaşa Otogar</div>',
@@ -640,7 +637,7 @@
 
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v18';
+        const CACHE_NAME = 'geoglass-v19';
         self.addEventListener('install', e => {
           e.waitUntil(
             caches.open(CACHE_NAME).then(cache => cache.addAll(['./', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']))
