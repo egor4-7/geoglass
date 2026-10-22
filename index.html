@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Geoglass — 3D Map & Live Bus</title>
   
+  <!-- PWA и Офлайн настройки -->
+  <meta name="theme-color" content="#0b131e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Geoglass">
+  
+  <!-- Встроенный PWA Manifest через Data URL -->
+  <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Geoglass%22,%22short_name%22:%22Geoglass%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%230b131e%22,%22theme_color%22:%22%230b131e%22}">
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
   <style>
@@ -81,7 +90,6 @@
       transform: scale(0.96);
     }
 
-    /* Анимация покачивания иконки погоды */
     .weather-icon {
       display: inline-block;
       animation: floatWeather 3s ease-in-out infinite;
@@ -126,7 +134,7 @@
       font-weight: bold;
     }
 
-    /* Нижняя панель управления */
+    /* Нижняя панель */
     .bottom-overlay {
       position: absolute;
       bottom: 24px;
@@ -175,7 +183,6 @@
       display: none;
     }
 
-    /* Еще более прозрачные чипсы категорий в стиле Liquid Glass */
     .category-chip {
       background: rgba(15, 34, 61, 0.6);
       backdrop-filter: blur(14px);
@@ -197,7 +204,6 @@
       border-color: rgba(255, 255, 255, 0.4);
     }
 
-    /* Выдвижные окна (модалки с плавной анимацией) */
     .glass-sheet {
       position: absolute;
       bottom: 90px;
@@ -279,9 +285,7 @@
 
   <div id="map"></div>
 
-  <!-- Верхняя панель -->
   <div class="top-overlay">
-    <!-- Кликабельный анимированный виджет погоды -->
     <div class="weather-card" onclick="toggleWeatherSheet()">
       <span class="weather-icon">⛅</span> 
       <span>+28°C</span>
@@ -297,7 +301,6 @@
     </div>
   </div>
 
-  <!-- Окно погоды -->
   <div class="glass-sheet" id="weatherSheet">
     <div class="sheet-header">
       <span>🌤 Погода: Газипаша — Аланья</span>
@@ -311,7 +314,6 @@
     </div>
   </div>
 
-  <!-- Окно транспорта -->
   <div class="glass-sheet" id="busSheet">
     <div class="sheet-header">
       <span>🚍 D400: Газипаша — Аланья / Анталья</span>
@@ -329,7 +331,6 @@
     </div>
   </div>
 
-  <!-- Нижняя панель -->
   <div class="bottom-overlay">
     <div class="search-bar">
       <input type="text" class="search-input" placeholder="Поиск мест и остановок D400...">
@@ -385,6 +386,39 @@
         document.getElementById('busSheet').classList.remove('open');
         document.getElementById('weatherSheet').classList.remove('open');
       }
+    }
+
+    // Автоматическая регистрация Service Worker для Офлайн работы
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        const CACHE_NAME = 'geoglass-v1';
+        self.addEventListener('install', e => {
+          e.waitUntil(
+            caches.open(CACHE_NAME).then(cache => {
+              return cache.addAll([
+                './',
+                'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+                'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+              ]);
+            })
+          );
+        });
+        self.addEventListener('fetch', e => {
+          e.respondWith(
+            caches.match(e.request).then(response => {
+              return response || fetch(e.request).then(fetchRes => {
+                return caches.open(CACHE_NAME).then(cache => {
+                  cache.put(e.request, fetchRes.clone());
+                  return fetchRes;
+                });
+              });
+            })
+          );
+        });
+      `;
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      const swUrl = URL.createObjectURL(blob);
+      navigator.serviceWorker.register(swUrl).catch(err => console.log('SW register error:', err));
     }
   </script>
 </body>
