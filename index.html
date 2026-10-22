@@ -226,7 +226,7 @@
     .tree-icon-3d { font-size: 38px; animation: floatTree 3s ease-in-out infinite; }
     @keyframes floatTree { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-5px) scale(1.08); } }
 
-    /* Полноэкранный VR/3D просмотрщик */
+    /* Полноэкранный VR просмотрщик */
     .immersive-pano-modal {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(5, 10, 20, 0.9); backdrop-filter: blur(35px); -webkit-backdrop-filter: blur(35px);
@@ -303,7 +303,7 @@
     </div>
   </div>
 
-  <!-- Окно транспорта (Обновлено по реальным маршрутам GAL02 и GAN01) -->
+  <!-- Окно транспорта -->
   <div class="glass-sheet" id="busSheet">
     <div class="sheet-header">
       <span>🚍 Транспорт коридора (Газипаша)</span>
@@ -428,6 +428,40 @@
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
+    // --- ЛИНИИ МАРШРУТОВ (GAL02 и GAN01) ---
+    
+    // Линия маршрута GAL02 (Газипаша — Аланья вдоль побережья)
+    var gal02Route = [
+      [36.2618, 32.3130], // Газипаша Отогар / Центр
+      [36.3100, 32.2300], 
+      [36.4200, 32.0800], 
+      [36.5438, 31.9998]  // Аланья
+    ];
+    L.polyline(gal02Route, {
+      color: '#007aff',
+      weight: 5,
+      opacity: 0.85,
+      lineCap: 'round',
+      lineJoin: 'round'
+    }).addTo(map);
+
+    // Линия маршрута GAN01 (Газипаша — Анталья)
+    var gan01Route = [
+      [36.2618, 32.3130], // Газипаша
+      [36.5438, 31.9998], // Аланья
+      [36.7200, 31.4200], // Манавгат / Сиде
+      [36.8969, 30.7133]  // Анталья
+    ];
+    L.polyline(gan01Route, {
+      color: '#ff3b30',
+      weight: 4,
+      opacity: 0.75,
+      dashArray: '8, 8',
+      lineCap: 'round',
+      lineJoin: 'round'
+    }).addTo(map);
+
+    // Маркеры на карте
     var hubIcon = L.divIcon({
       html: '<div class="hub-marker" onclick="toggleBusSheet()">🚏 Gazipaşa Merkez</div>',
       className: '', iconSize: [160, 34], iconAnchor: [80, 17]
@@ -651,7 +685,7 @@
 
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v21';
+        const CACHE_NAME = 'geoglass-v22';
         self.addEventListener('install', e => {
           e.waitUntil(
             caches.open(CACHE_NAME).then(cache => cache.addAll(['./', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']))
