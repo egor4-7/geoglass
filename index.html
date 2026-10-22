@@ -20,6 +20,7 @@
       padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
     body, html {
@@ -64,39 +65,11 @@
       pointer-events: auto;
     }
 
-    /* Интерактивные карточки с эффектом увеличения и блика при нажатии */
-    .weather-card, .category-chip, .glass-sheet, .sheet-item {
-      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease, background 0.25s ease;
-      position: relative;
-      overflow: hidden;
-      cursor: pointer;
-    }
-
-    /* Эффект светового блика */
-    .weather-card::after, .category-chip::after, .sheet-item::after {
-      content: '';
-      position: absolute;
-      top: -50%; left: -50%; width: 200%; height: 200%;
-      background: linear-gradient(60deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%);
-      transform: translateX(-100%);
-      transition: transform 0.5s ease;
-      pointer-events: none;
-    }
-
-    .weather-card:active::after, .category-chip:active::after, .sheet-item:active::after {
-      transform: translateX(100%);
-    }
-
-    .weather-card:active, .category-chip:active, .sheet-item:active {
-      transform: scale(1.06);
-      box-shadow: 0 10px 30px rgba(40, 167, 69, 0.4), inset 0 0 15px rgba(255,255,255,0.2);
-    }
-
-    /* Анимированный виджет погоды (Liquid Glass + Блюр-анимация) */
+    /* Виджет погоды */
     .weather-card {
       display: flex;
       align-items: center;
-      background: rgba(15, 34, 61, 0.6);
+      background: rgba(15, 34, 61, 0.65);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       padding: 10px 16px;
@@ -107,48 +80,57 @@
       font-weight: 700;
       font-size: 14px;
       gap: 12px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
     }
 
-    /* Жидкий анимированный контейнер погоды */
+    .weather-card:active {
+      transform: scale(0.96);
+    }
+
     .liquid-weather-icon {
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .liquid-blob-1, .liquid-blob-2 {
+    .liquid-sun {
       position: absolute;
-      border-radius: 50%;
-      filter: blur(4px);
-    }
-
-    .liquid-blob-1 {
+      top: 1px;
+      left: 1px;
       width: 18px;
       height: 18px;
-      background: #ffcc00;
+      background: radial-gradient(circle, #ffea00 0%, #ff9900 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(255, 200, 0, 0.8);
       animation: pulseSun 3s ease-in-out infinite;
-      top: 0; left: 2px;
     }
 
-    .liquid-blob-2 {
+    .liquid-cloud {
+      position: absolute;
+      bottom: 1px;
+      right: 0px;
       width: 22px;
       height: 14px;
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(1px);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
       animation: floatCloud 2.5s ease-in-out infinite;
-      bottom: 0; right: 0;
     }
 
     @keyframes pulseSun {
-      0%, 100% { transform: scale(1) translateY(0); opacity: 0.9; }
-      50% { transform: scale(1.2) translateY(-2px); opacity: 1; filter: blur(3px); }
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
     }
 
     @keyframes floatCloud {
       0%, 100% { transform: translateX(0); }
-      50% { transform: translateX(3px); }
+      50% { transform: translateX(2px); }
     }
 
     /* Нижняя панель */
@@ -188,38 +170,79 @@
       outline: none;
     }
 
-    .categories-scroll {
-      display: flex;
-      gap: 8px;
+    /* ЕДИНАЯ ПЛАШКА В СТИЛЕ iOS VISION (Liquid Glass Track) */
+    .segmented-control-container {
+      width: 100%;
       overflow-x: auto;
       scrollbar-width: none;
       padding-bottom: 4px;
     }
-
-    .categories-scroll::-webkit-scrollbar {
+    .segmented-control-container::-webkit-scrollbar {
       display: none;
     }
 
-    .category-chip {
-      background: rgba(15, 34, 61, 0.6);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      padding: 10px 18px;
-      border-radius: 20px;
-      color: #ffffff;
+    .segmented-track {
+      position: relative;
+      display: inline-flex;
+      background: rgba(15, 34, 61, 0.55);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 28px;
+      padding: 4px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Плавающая объёмная «Линза-Лупа» (Glass Lens Indicator) */
+    .lens-indicator {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      height: calc(100% - 8px);
+      background: rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(25px) saturate(180%);
+      -webkit-backdrop-filter: blur(25px) saturate(180%);
+      border: 1.5px solid rgba(255, 255, 255, 0.6);
+      border-radius: 24px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35), inset 0 0 12px rgba(255, 255, 255, 0.4);
+      transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1), width 0.28s cubic-bezier(0.25, 1, 0.5, 1);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Блик на линзе */
+    .lens-indicator::after {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%; width: 200%; height: 200%;
+      background: linear-gradient(60deg, transparent 45%, rgba(255,255,255,0.4) 50%, transparent 55%);
+      pointer-events: none;
+    }
+
+    .segmented-btn {
+      position: relative;
+      z-index: 2;
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      padding: 10px 20px;
       font-size: 14px;
       font-weight: 600;
       white-space: nowrap;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+      cursor: pointer;
+      transition: color 0.2s ease, transform 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    .category-chip.active {
-      background: rgba(40, 167, 69, 0.85);
-      border-color: rgba(255, 255, 255, 0.5);
+    .segmented-btn.active {
+      color: #ffffff;
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(255,255,255,0.5);
     }
 
-    /* Выдвижные окна (Liquid Glass модалки) */
+    /* Выдвижные окна */
     .glass-sheet {
       position: absolute;
       bottom: 90px;
@@ -243,9 +266,7 @@
       to { transform: translateY(0); opacity: 1; }
     }
 
-    .glass-sheet.open {
-      display: block;
-    }
+    .glass-sheet.open { display: block; }
 
     .sheet-header {
       display: flex;
@@ -262,7 +283,6 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      scrollbar-width: thin;
     }
 
     .sheet-item {
@@ -279,8 +299,7 @@
     .badge-gal { background: #0056b3; padding: 4px 8px; border-radius: 8px; font-weight: bold; font-size: 12px; }
     .badge-gan { background: #d9534f; padding: 4px 8px; border-radius: 8px; font-weight: bold; font-size: 12px; }
 
-    /* Маркеры на карте */
-    .bus-marker {
+    .bus-marker, .hub-marker {
       background: rgba(40, 167, 69, 0.9);
       backdrop-filter: blur(10px);
       border: 2px solid rgba(255, 255, 255, 0.9);
@@ -290,44 +309,27 @@
       font-weight: 700;
       font-size: 13px;
       box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-      display: flex;
-      align-items: center;
-      gap: 6px;
       white-space: nowrap;
       cursor: pointer;
     }
 
-    .hub-marker {
-      background: rgba(0, 86, 179, 0.9);
-      backdrop-filter: blur(10px);
-      border: 2px solid rgba(255, 255, 255, 0.9);
-      border-radius: 18px;
-      color: white;
-      padding: 6px 12px;
-      font-weight: 700;
-      font-size: 12px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-      white-space: nowrap;
-      cursor: pointer;
-    }
+    .hub-marker { background: rgba(0, 86, 179, 0.9); }
   </style>
 </head>
 <body>
 
   <div id="map"></div>
 
-  <!-- Верхняя панель (без этажей) -->
   <div class="top-overlay">
     <div class="weather-card" onclick="toggleWeatherSheet()">
       <div class="liquid-weather-icon">
-        <div class="liquid-blob-1"></div>
-        <div class="liquid-blob-2"></div>
+        <div class="liquid-sun"></div>
+        <div class="liquid-cloud"></div>
       </div>
       <span>+28°C</span>
     </div>
   </div>
 
-  <!-- Окно погоды -->
   <div class="glass-sheet" id="weatherSheet">
     <div class="sheet-header">
       <span>🌤 Погода: Газипаша — Аланья</span>
@@ -341,10 +343,9 @@
     </div>
   </div>
 
-  <!-- Окно транспорта -->
   <div class="glass-sheet" id="busSheet">
     <div class="sheet-header">
-      <span>🚍 Gazipaşa Central Stop (Cemal Gürsel Cad.)</span>
+      <span>🚍 Gazipaşa Otogar (Terminal Sokak)</span>
       <span style="cursor:pointer; font-size: 18px;" onclick="toggleBusSheet()">✕</span>
     </div>
     <div class="sheet-list">
@@ -359,46 +360,49 @@
     </div>
   </div>
 
-  <!-- Нижняя панель -->
   <div class="bottom-overlay">
     <div class="search-bar">
       <input type="text" class="search-input" placeholder="Поиск остановок и мест...">
     </div>
 
-    <div class="categories-scroll">
-      <button class="category-chip active" onclick="setTab(this)">Все</button>
-      <button class="category-chip" onclick="setTab(this)">Прогулки</button>
-      <button class="category-chip" onclick="setTab(this)">Еда</button>
-      <button class="category-chip" onclick="setTab(this, 'bus')">🚌 Транспорт (GAL02)</button>
-      <button class="category-chip" onclick="setTab(this)">Пляжи</button>
+    <!-- Объединенная полоса категорий с анимированной плавающей лупой -->
+    <div class="segmented-control-container">
+      <div class="segmented-track" id="segmentedTrack">
+        <div class="lens-indicator" id="lensIndicator"></div>
+        <button class="segmented-btn active" data-type="all">Все</button>
+        <button class="segmented-btn" data-type="walk">Прогулки</button>
+        <button class="segmented-btn" data-type="food">Еда</button>
+        <button class="segmented-btn" data-type="bus">🚌 Транспорт (GAL02)</button>
+        <button class="segmented-btn" data-type="beach">Пляжи</button>
+      </div>
     </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    var map = L.map('map', { zoomControl: false }).setView([36.2655, 32.3025], 15);
+    var map = L.map('map', { zoomControl: false }).setView([36.2618, 32.3130], 16);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19
     }).addTo(map);
 
-    // Маркер автобуса GAL02
+    var otogarCoords = [36.2618, 32.3130];
+
+    var hubIcon = L.divIcon({
+      html: '<div class="hub-marker" onclick="toggleBusSheet()">🚏 Gazipaşa Otogar</div>',
+      className: '',
+      iconSize: [160, 34],
+      iconAnchor: [80, 17]
+    });
+    L.marker(otogarCoords, { icon: hubIcon }).addTo(map);
+
     var busIcon = L.divIcon({
       html: '<div class="bus-marker" onclick="toggleBusSheet()"><span>🚌</span> GAL02 • 3 мин</div>',
       className: '',
       iconSize: [150, 34],
-      iconAnchor: [75, 17]
+      iconAnchor: [75, -20]
     });
-    L.marker([36.2655, 32.3025], { icon: busIcon }).addTo(map);
-
-    // Маркер центрального вокзала долмушей (Cemal Gürsel Cad., 22A)
-    var hubIcon = L.divIcon({
-      html: '<div class="hub-marker" onclick="toggleBusSheet()">🚏 Gazipaşa Central Stop</div>',
-      className: '',
-      iconSize: [180, 34],
-      iconAnchor: [90, 17]
-    });
-    L.marker([36.2662, 32.3040], { icon: hubIcon }).addTo(map);
+    L.marker(otogarCoords, { icon: busIcon }).addTo(map);
 
     function toggleBusSheet() {
       document.getElementById('weatherSheet').classList.remove('open');
@@ -410,9 +414,23 @@
       document.getElementById('weatherSheet').classList.toggle('open');
     }
 
-    function setTab(element, type) {
-      document.querySelectorAll('.category-chip').forEach(chip => chip.classList.remove('active'));
-      element.classList.add('active');
+    /* Логика линзы-лупы с жестным скольжением пальца */
+    const track = document.getElementById('segmentedTrack');
+    const lens = document.getElementById('lensIndicator');
+    const buttons = document.querySelectorAll('.segmented-btn');
+
+    function updateLens(btn) {
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const btnRect = btn.getBoundingClientRect();
+      const trackRect = track.getBoundingClientRect();
+
+      const leftOffset = btnRect.left - trackRect.left - 4;
+      lens.style.transform = `translateX(${leftOffset}px)`;
+      lens.style.width = `${btnRect.width}px`;
+
+      const type = btn.getAttribute('data-type');
       if (type === 'bus') {
         toggleBusSheet();
       } else {
@@ -421,10 +439,38 @@
       }
     }
 
-    // PWA Service Worker
+    // Первоначальное позиционирование
+    window.addEventListener('load', () => updateLens(buttons[0]));
+
+    // Клик по разделу
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => updateLens(btn));
+    });
+
+    // Обработка ведения пальцем / свайпа (Drag Lens)
+    let isDragging = false;
+
+    function handleTouchMove(e) {
+      if (!isDragging) return;
+      const touch = e.touches ? e.touches[0] : e;
+      const x = touch.clientX;
+
+      buttons.forEach(btn => {
+        const rect = btn.getBoundingClientRect();
+        if (x >= rect.left && x <= rect.right) {
+          updateLens(btn);
+        }
+      });
+    }
+
+    track.addEventListener('touchstart', (e) => { isDragging = true; handleTouchMove(e); }, { passive: true });
+    track.addEventListener('touchmove', handleTouchMove, { passive: true });
+    track.addEventListener('touchend', () => { isDragging = false; });
+
+    // Service Worker для офлайн-режима
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v2';
+        const CACHE_NAME = 'geoglass-v4';
         self.addEventListener('install', e => {
           e.waitUntil(
             caches.open(CACHE_NAME).then(cache => {
