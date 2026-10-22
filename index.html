@@ -10,7 +10,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Geoglass">
   
-  <!-- Расширенный манифест для PWA на iOS и Android -->
   <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Geoglass%22,%22short_name%22:%22Geoglass%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%230b131e%22,%22theme_color%22:%22%230b131e%22}">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
@@ -49,7 +48,7 @@
       display: none !important;
     }
 
-    /* Верхняя панель с учетом безопасной зоны iPhone */
+    /* Верхняя панель */
     .top-overlay {
       position: absolute;
       top: max(16px, env(safe-area-inset-top)); 
@@ -116,7 +115,7 @@
     }
     .sun-cycle-time { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.8); font-weight: 600; }
 
-    /* Нижняя панель с учетом безопасной зоны iPhone */
+    /* Нижняя панель */
     .bottom-overlay {
       position: absolute;
       bottom: max(24px, env(safe-area-inset-bottom));
@@ -198,7 +197,7 @@
     }
     .close-btn:active { transform: scale(0.9); }
 
-    .sheet-list { max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .sheet-list { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
     .sheet-item {
       display: flex; justify-content: space-between; background: rgba(255, 255, 255, 0.08);
       padding: 10px 14px; border-radius: 12px; align-items: center; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.08);
@@ -304,18 +303,29 @@
     </div>
   </div>
 
-  <!-- Окно транспорта -->
+  <!-- Окно транспорта (Обновлено по реальным маршрутам GAL02 и GAN01) -->
   <div class="glass-sheet" id="busSheet">
     <div class="sheet-header">
-      <span>🚍 Gazipaşa Otogar (Terminal Sokak)</span>
+      <span>🚍 Транспорт коридора (Газипаша)</span>
       <div class="close-btn" onclick="toggleBusSheet()">✕</div>
     </div>
     <div class="sheet-list">
-      <div class="sheet-item"><span class="badge-gal">GAL02</span><span>Газипаша - Аланья</span><b>06:36</b></div>
-      <div class="sheet-item"><span class="badge-gal">GAL02</span><span>Газипаша - Аланья</span><b>06:56</b></div>
-      <div class="sheet-item"><span class="badge-gal">GAL02</span><span>Газипаша - Аланья</span><b>07:16</b></div>
-      <div class="sheet-item"><span class="badge-gan">GAN01</span><span>Газипаша - Анталья</span><b>08:01</b></div>
-      <div class="sheet-item"><span class="badge-gal">GAL02</span><span>Газипаша - Аланья</span><b>08:16</b></div>
+      <div class="sheet-item">
+        <div><span class="badge-gal">GAL02</span> <b style="margin-left: 6px;">Газипаша - Аланья</b><div style="font-size: 11px; color: rgba(255,255,255,0.6);">Центр (Merkez Durağı)</div></div>
+        <span style="color: #4cd964; font-weight: 700;">06:30 • 06:50 • 07:10</span>
+      </div>
+      <div class="sheet-item">
+        <div><span class="badge-gan">GAN01</span> <b style="margin-left: 6px;">Газипаша - Анталья</b><div style="font-size: 11px; color: rgba(255,255,255,0.6);">Mehmet Oğuz Blv</div></div>
+        <span style="color: #ffcc00; font-weight: 700;">06:00 • 08:00 • 11:00</span>
+      </div>
+      <div class="sheet-item">
+        <div><span class="badge-gal">GAL02</span> <b style="margin-left: 6px;">Газипаша - Аланья</b><div style="font-size: 11px; color: rgba(255,255,255,0.6);">Отправление</div></div>
+        <span style="font-weight: 700;">07:30 • 07:50</span>
+      </div>
+      <div class="sheet-item">
+        <div><span class="badge-gan">GAN01</span> <b style="margin-left: 6px;">Газипаша - Анталья</b><div style="font-size: 11px; color: rgba(255,255,255,0.6);">Рейс дня</div></div>
+        <span style="font-weight: 700;">13:30</span>
+      </div>
     </div>
   </div>
 
@@ -393,7 +403,7 @@
       </div>
 
       <div class="search-bar">
-        <input type="text" class="search-input" id="searchInput" placeholder="Поиск (автобус, погода)...">
+        <input type="text" class="search-input" id="searchInput" placeholder="Поиск (транспорт, погода)...">
       </div>
     </div>
 
@@ -419,14 +429,14 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
     var hubIcon = L.divIcon({
-      html: '<div class="hub-marker" onclick="toggleBusSheet()">🚏 Gazipaşa Otogar</div>',
+      html: '<div class="hub-marker" onclick="toggleBusSheet()">🚏 Gazipaşa Merkez</div>',
       className: '', iconSize: [160, 34], iconAnchor: [80, 17]
     });
     L.marker(otogarCoords, { icon: hubIcon }).addTo(map);
 
     var busIcon = L.divIcon({
-      html: '<div class="bus-marker" onclick="toggleBusSheet()"><span>🚌</span> GAL02 • 3 мин</div>',
-      className: '', iconSize: [150, 34], iconAnchor: [75, -20]
+      html: '<div class="bus-marker" onclick="toggleBusSheet()"><span>🚌</span> GAL02 • 06:30</div>',
+      className: '', iconSize: [160, 34], iconAnchor: [80, -20]
     });
     L.marker(otogarCoords, { icon: busIcon }).addTo(map);
 
@@ -532,7 +542,7 @@
         const query = searchInput.value.toLowerCase().trim();
         if (!query) return;
 
-        if (query.includes('транспорт') || query.includes('автобус') || query.includes('gal')) {
+        if (query.includes('транспорт') || query.includes('автобус') || query.includes('gal') || query.includes('gan')) {
           toggleBusSheet();
         } else if (query.includes('погод') || query.includes('weather')) {
           toggleWeatherSheet();
@@ -594,7 +604,6 @@
     });
 
     function handleInputMove(clientX) {
-      buttons.button?.forEach?.(...) // safe check
       buttons.forEach((btn, i) => {
         const rect = btn.getBoundingClientRect();
         const extra = 15;
@@ -642,7 +651,7 @@
 
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v20';
+        const CACHE_NAME = 'geoglass-v21';
         self.addEventListener('install', e => {
           e.waitUntil(
             caches.open(CACHE_NAME).then(cache => cache.addAll(['./', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']))
