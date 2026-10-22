@@ -177,9 +177,9 @@
     }
     .segmented-btn.active { color: #ffffff; font-weight: 700; text-shadow: 0 0 8px rgba(255,255,255,0.4); }
 
-    /* Модальные окна */
+    /* Модальные окна (приподняты выше, чтобы не задевать воздушный бар) */
     .glass-sheet {
-      position: absolute; bottom: 90px; left: 16px; right: 16px;
+      position: absolute; bottom: 115px; left: 16px; right: 16px;
       background: rgba(15, 34, 61, 0.75); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
       border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 24px; padding: 18px; color: #fff;
       box-shadow: 0 15px 35px rgba(0,0,0,0.5); z-index: 20; opacity: 0; transform: translateY(25px) scale(0.96);
@@ -428,40 +428,44 @@
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
-    // --- ЛИНИИ МАРШРУТОВ (GAL02 и GAN01) ---
-    
-    // Линия маршрута GAL02 (Газипаша — Аланья вдоль побережья)
-    var gal02Route = [
-      [36.2618, 32.3130], // Газипаша Отогар / Центр
-      [36.3100, 32.2300], 
-      [36.4200, 32.0800], 
-      [36.5438, 31.9998]  // Аланья
+    // --- РЕАЛИСТИЧНЫЕ ПРИБРЕЖНЫЕ МАРШРУТЫ (вдоль трассы D400) ---
+    var gal02Coords = [
+      [36.2618, 32.3130],
+      [36.2750, 32.2900],
+      [36.2950, 32.2550],
+      [36.3100, 32.2300],
+      [36.3500, 32.1800],
+      [36.4100, 32.1000],
+      [36.4800, 32.0400],
+      [36.5438, 31.9998]
     ];
-    L.polyline(gal02Route, {
-      color: '#007aff',
-      weight: 5,
-      opacity: 0.85,
-      lineCap: 'round',
-      lineJoin: 'round'
-    }).addTo(map);
+    var gal02Polyline = L.polyline(gal02Coords, {
+      color: '#007aff', weight: 5, opacity: 0.85, lineCap: 'round', lineJoin: 'round'
+    });
 
-    // Линия маршрута GAN01 (Газипаша — Анталья)
-    var gan01Route = [
-      [36.2618, 32.3130], // Газипаша
-      [36.5438, 31.9998], // Аланья
-      [36.7200, 31.4200], // Манавгат / Сиде
-      [36.8969, 30.7133]  // Анталья
+    var gan01Coords = [
+      [36.2618, 32.3130],
+      [36.3100, 32.2300],
+      [36.5438, 31.9998],
+      [36.5800, 31.8500],
+      [36.6800, 31.5500],
+      [36.7800, 31.4500],
+      [36.8500, 31.0500],
+      [36.8969, 30.7133]
     ];
-    L.polyline(gan01Route, {
-      color: '#ff3b30',
-      weight: 4,
-      opacity: 0.75,
-      dashArray: '8, 8',
-      lineCap: 'round',
-      lineJoin: 'round'
-    }).addTo(map);
+    var gan01Polyline = L.polyline(gan01Coords, {
+      color: '#ff3b30', weight: 4, opacity: 0.75, dashArray: '8, 8', lineCap: 'round', lineJoin: 'round'
+    });
 
-    // Маркеры на карте
+    function showTransportRoutes() {
+      if (!map.hasLayer(gal02Polyline)) gal02Polyline.addTo(map);
+      if (!map.hasLayer(gan01Polyline)) gan01Polyline.addTo(map);
+    }
+    function hideTransportRoutes() {
+      if (map.hasLayer(gal02Polyline)) map.removeLayer(gal02Polyline);
+      if (map.hasLayer(gan01Polyline)) map.removeLayer(gan01Polyline);
+    }
+
     var hubIcon = L.divIcon({
       html: '<div class="hub-marker" onclick="toggleBusSheet()">🚏 Gazipaşa Merkez</div>',
       className: '', iconSize: [160, 34], iconAnchor: [80, 17]
@@ -493,12 +497,18 @@
       document.getElementById('memorialSheet').classList.remove('open');
       closeSearch();
       const isOpen = document.getElementById('busSheet').classList.toggle('open');
-      if (isOpen) syncLensToType('bus');
+      if (isOpen) {
+        syncLensToType('bus');
+        showTransportRoutes();
+      } else {
+        hideTransportRoutes();
+      }
     }
 
     function toggleWeatherSheet() {
       document.getElementById('busSheet').classList.remove('open');
       document.getElementById('memorialSheet').classList.remove('open');
+      hideTransportRoutes();
       closeSearch();
       document.getElementById('weatherSheet').classList.toggle('open');
     }
@@ -506,6 +516,7 @@
     function toggleMemorialSheet() {
       document.getElementById('weatherSheet').classList.remove('open');
       document.getElementById('busSheet').classList.remove('open');
+      hideTransportRoutes();
       closeSearch();
       const isOpen = document.getElementById('memorialSheet').classList.toggle('open');
       if (isOpen) syncLensToType('memorial');
@@ -586,6 +597,7 @@
           document.getElementById('busSheet').classList.remove('open');
           document.getElementById('weatherSheet').classList.remove('open');
           document.getElementById('memorialSheet').classList.remove('open');
+          hideTransportRoutes();
           searchResultTitle.innerText = '🔍 ' + query;
           searchResultBody.innerText = 'Найдено в Газипаше по запросу "' + query + '"';
           searchResults.classList.add('open');
@@ -626,8 +638,12 @@
 
       if (type === 'bus') {
         document.getElementById('busSheet').classList.add('open');
-      } else if (type === 'memorial') {
-        document.getElementById('memorialSheet').classList.add('open');
+        showTransportRoutes();
+      } else {
+        hideTransportRoutes();
+        if (type === 'memorial') {
+          document.getElementById('memorialSheet').classList.add('open');
+        }
       }
     }
 
@@ -685,7 +701,7 @@
 
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v22';
+        const CACHE_NAME = 'geoglass-v24';
         self.addEventListener('install', e => {
           e.waitUntil(
             caches.open(CACHE_NAME).then(cache => cache.addAll(['./', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']))
