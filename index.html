@@ -21,6 +21,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
+      -webkit-user-select: none;
     }
 
     body, html {
@@ -99,10 +100,8 @@
 
     .liquid-sun {
       position: absolute;
-      top: 1px;
-      left: 1px;
-      width: 18px;
-      height: 18px;
+      top: 1px; left: 1px;
+      width: 18px; height: 18px;
       background: radial-gradient(circle, #ffea00 0%, #ff9900 100%);
       border-radius: 50%;
       box-shadow: 0 0 10px rgba(255, 200, 0, 0.8);
@@ -111,10 +110,8 @@
 
     .liquid-cloud {
       position: absolute;
-      bottom: 1px;
-      right: 0px;
-      width: 22px;
-      height: 14px;
+      bottom: 1px; right: 0px;
+      width: 22px; height: 14px;
       background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(1px);
       border-radius: 10px;
@@ -147,9 +144,11 @@
       pointer-events: auto;
     }
 
+    /* Умная поисковая строка (укорочена до ~5 см, сдвинута влево) */
     .search-bar {
       display: flex;
       align-items: center;
+      width: 240px;
       background: rgba(244, 241, 234, 0.85);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
@@ -157,6 +156,7 @@
       padding: 10px 16px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
       margin-bottom: 12px;
+      margin-left: 0;
       border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
@@ -168,9 +168,11 @@
       color: #0f223d;
       font-weight: 600;
       outline: none;
+      user-select: text;
+      -webkit-user-select: text;
     }
 
-    /* Единый контейнер категорий */
+    /* Единый бар категорий */
     .segmented-control-container {
       width: 100%;
       overflow-x: auto;
@@ -191,13 +193,13 @@
       border-radius: 28px;
       padding: 4px;
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+      touch-action: none; /* Устранение конфликта с жестами прокрутки/выделения */
     }
 
-    /* Плавающая линза с эффектом увеличения (scale) при удержании */
+    /* Линза с физикой увеличения */
     .lens-indicator {
       position: absolute;
-      top: 4px;
-      left: 4px;
+      top: 4px; left: 4px;
       height: calc(100% - 8px);
       background: rgba(255, 255, 255, 0.28);
       backdrop-filter: blur(25px) saturate(190%);
@@ -211,7 +213,6 @@
       transform-origin: center;
     }
 
-    /* Состояние увеличения при удержании/нажатии */
     .lens-indicator.pressing {
       transform: scale(1.15) !important;
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), inset 0 0 16px rgba(255, 255, 255, 0.6);
@@ -241,7 +242,7 @@
       text-shadow: 0 0 8px rgba(255,255,255,0.4);
     }
 
-    /* Выдвижные окна */
+    /* Модальные окна с плавной анимацией открытия/закрытия через блюр */
     .glass-sheet {
       position: absolute;
       bottom: 90px;
@@ -256,16 +257,17 @@
       color: #fff;
       box-shadow: 0 15px 35px rgba(0,0,0,0.6);
       z-index: 20;
-      display: none;
-      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+      transform: translateY(25px) scale(0.96);
+      pointer-events: none;
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    @keyframes slideUp {
-      from { transform: translateY(30px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+    .glass-sheet.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
     }
-
-    .glass-sheet.open { display: block; }
 
     .sheet-header {
       display: flex;
@@ -276,12 +278,37 @@
       font-size: 16px;
     }
 
+    /* Крупный стеклянный крестик закрытия в стиле линзы */
+    .close-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1.5px solid rgba(255, 255, 255, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 0 8px rgba(255,255,255,0.3);
+      transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.2s;
+    }
+
+    .close-btn:active {
+      transform: scale(0.9);
+      background: rgba(255, 255, 255, 0.35);
+    }
+
     .sheet-list {
       max-height: 180px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 8px;
+      scrollbar-width: thin;
     }
 
     .sheet-item {
@@ -329,10 +356,11 @@
     </div>
   </div>
 
+  <!-- Окно погоды -->
   <div class="glass-sheet" id="weatherSheet">
     <div class="sheet-header">
       <span>🌤 Погода: Газипаша — Аланья</span>
-      <span style="cursor:pointer; font-size: 18px;" onclick="toggleWeatherSheet()">✕</span>
+      <div class="close-btn" onclick="toggleWeatherSheet()">✕</div>
     </div>
     <div class="sheet-list">
       <div class="sheet-item"><span>Сейчас</span><span>⛅ +28°C, Ясно</span></div>
@@ -342,10 +370,11 @@
     </div>
   </div>
 
+  <!-- Окно транспорта -->
   <div class="glass-sheet" id="busSheet">
     <div class="sheet-header">
       <span>🚍 Gazipaşa Otogar (Terminal Sokak)</span>
-      <span style="cursor:pointer; font-size: 18px;" onclick="toggleBusSheet()">✕</span>
+      <div class="close-btn" onclick="toggleBusSheet()">✕</div>
     </div>
     <div class="sheet-list">
       <div class="sheet-item"><span class="badge-gal">GAL02</span><span>Газипаша - Аланья</span><b>06:36</b></div>
@@ -360,8 +389,9 @@
   </div>
 
   <div class="bottom-overlay">
+    <!-- Умный поиск -->
     <div class="search-bar">
-      <input type="text" class="search-input" placeholder="Поиск остановок и мест...">
+      <input type="text" class="search-input" id="searchInput" placeholder="Поиск (автобус, погода)...">
     </div>
 
     <div class="segmented-control-container">
@@ -411,7 +441,23 @@
       document.getElementById('weatherSheet').classList.toggle('open');
     }
 
-    /* Логика линзы с эффектом увеличения при удержании и перетаскивании */
+    /* Умный поиск */
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const query = searchInput.value.toLowerCase().trim();
+        if (query.includes('транспорт') || query.includes('автобус') || query.includes('gal') || query.includes('otogar')) {
+          toggleBusSheet();
+        } else if (query.includes('погод') || query.includes('weather') || query.includes('температур')) {
+          toggleWeatherSheet();
+        } else {
+          alert('Поиск по объектам: ' + query);
+        }
+        searchInput.blur();
+      }
+    });
+
+    /* Логика линзы */
     const track = document.getElementById('segmentedTrack');
     const lens = document.getElementById('lensIndicator');
     const buttons = document.querySelectorAll('.segmented-btn');
@@ -472,7 +518,6 @@
       if (activeBtn) updateLens(activeBtn);
     });
 
-    // Для удобства проверки на ПК мышкой
     track.addEventListener('mousedown', (e) => {
       isPressing = true;
       lens.classList.add('pressing');
@@ -492,7 +537,7 @@
 
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v6';
+        const CACHE_NAME = 'geoglass-v7';
         self.addEventListener('install', e => {
           e.waitUntil(
             caches.open(CACHE_NAME).then(cache => {
