@@ -56,7 +56,7 @@
       left: 16px;
       right: 16px;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       align-items: flex-start;
       z-index: 10;
       pointer-events: none;
@@ -66,23 +66,23 @@
       pointer-events: auto;
     }
 
-    /* Виджет погоды (Liquid Glass) */
+    /* Виджет погоды */
     .weather-card {
       display: flex;
       align-items: center;
-      background: rgba(15, 34, 61, 0.65);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      background: rgba(15, 34, 61, 0.45);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       padding: 10px 16px;
       border-radius: 22px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
       color: #ffffff;
       font-weight: 700;
       font-size: 14px;
       gap: 12px;
       cursor: pointer;
-      transition: transform 0.2s ease;
+      transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
     .weather-card:active {
@@ -112,7 +112,7 @@
       position: absolute;
       bottom: 1px; right: 0px;
       width: 22px; height: 14px;
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.88);
       backdrop-filter: blur(1px);
       border-radius: 10px;
       border: 1px solid rgba(255, 255, 255, 0.6);
@@ -130,6 +130,97 @@
       50% { transform: translateX(2px); }
     }
 
+    /* Фирменные мини-иконки погоды без системных эмодзи */
+    .mini-icon {
+      width: 16px;
+      height: 16px;
+      position: relative;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    .mini-sun {
+      background: radial-gradient(circle, #ffea00 0%, #ff9900 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(255, 200, 0, 0.9);
+    }
+    .mini-moon {
+      background: radial-gradient(circle, #c2e9fb 0%, #a1c4fd 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(160, 200, 255, 0.7);
+    }
+    .mini-water {
+      background: radial-gradient(circle, #00c6ff 0%, #0072ff 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(0, 150, 255, 0.7);
+    }
+
+    /* Подробное окно погоды рядом с виджетом */
+    .weather-popover {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      width: 320px;
+      background: rgba(15, 34, 61, 0.65);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 24px;
+      padding: 16px;
+      color: #fff;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+      z-index: 25;
+      opacity: 0;
+      transform: translateY(-10px) scale(0.92);
+      transform-origin: top left;
+      pointer-events: none;
+      transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .weather-popover.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    /* Шкала Рассвет / Закат */
+    .sun-cycle-container {
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sun-cycle-bar {
+      position: relative;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #ff7e5f 0%, #feb47b 50%, #4a90e2 100%);
+      border-radius: 2px;
+      margin: 12px 0 6px 0;
+    }
+
+    .sun-cycle-dot {
+      position: absolute;
+      top: -5px;
+      left: 70%;
+      width: 14px;
+      height: 14px;
+      background: #ffcc00;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #ffcc00;
+    }
+
+    .sun-cycle-time {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 600;
+    }
+
     /* Нижняя панель */
     .bottom-overlay {
       position: absolute;
@@ -144,35 +235,74 @@
       pointer-events: auto;
     }
 
-    /* Умная поисковая строка (укорочена до ~5 см, сдвинута влево) */
+    /* Поиск */
+    .search-container {
+      position: relative;
+      width: 240px;
+      margin-bottom: 12px;
+    }
+
     .search-bar {
       display: flex;
       align-items: center;
-      width: 240px;
-      background: rgba(244, 241, 234, 0.85);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      width: 100%;
+      background: rgba(15, 34, 61, 0.45);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border-radius: 26px;
       padding: 10px 16px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-      margin-bottom: 12px;
-      margin-left: 0;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
       border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .search-bar:focus-within {
+      border-color: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.25);
     }
 
     .search-input {
       flex: 1;
       border: none;
       background: transparent;
-      font-size: 15px;
-      color: #0f223d;
+      font-size: 14px;
+      color: #ffffff;
       font-weight: 600;
       outline: none;
       user-select: text;
       -webkit-user-select: text;
     }
 
-    /* Единый бар категорий */
+    .search-input::placeholder {
+      color: rgba(255, 255, 255, 0.55);
+    }
+
+    .search-results-popover {
+      position: absolute;
+      bottom: 54px;
+      left: 0;
+      width: 280px;
+      background: rgba(15, 34, 61, 0.65);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 14px;
+      color: #ffffff;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transform: translateY(15px) scale(0.95);
+      pointer-events: none;
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .search-results-popover.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    /* Бар категорий */
     .segmented-control-container {
       width: 100%;
       overflow-x: auto;
@@ -186,22 +316,21 @@
     .segmented-track {
       position: relative;
       display: inline-flex;
-      background: rgba(15, 34, 61, 0.55);
+      background: rgba(15, 34, 61, 0.45);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 28px;
       padding: 4px;
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-      touch-action: none; /* Устранение конфликта с жестами прокрутки/выделения */
+      touch-action: none;
     }
 
-    /* Линза с физикой увеличения */
     .lens-indicator {
       position: absolute;
       top: 4px; left: 4px;
       height: calc(100% - 8px);
-      background: rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.25);
       backdrop-filter: blur(25px) saturate(190%);
       -webkit-backdrop-filter: blur(25px) saturate(190%);
       border: 1.5px solid rgba(255, 255, 255, 0.65);
@@ -242,20 +371,20 @@
       text-shadow: 0 0 8px rgba(255,255,255,0.4);
     }
 
-    /* Модальные окна с плавной анимацией открытия/закрытия через блюр */
+    /* Модальное окно транспорта */
     .glass-sheet {
       position: absolute;
       bottom: 90px;
       left: 16px;
       right: 16px;
-      background: rgba(15, 34, 61, 0.88);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
+      background: rgba(15, 34, 61, 0.65);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
       border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 24px;
       padding: 18px;
       color: #fff;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5);
       z-index: 20;
       opacity: 0;
       transform: translateY(25px) scale(0.96);
@@ -278,10 +407,9 @@
       font-size: 16px;
     }
 
-    /* Крупный стеклянный крестик закрытия в стиле линзы */
     .close-btn {
-      width: 36px;
-      height: 36px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.18);
       backdrop-filter: blur(15px);
@@ -291,15 +419,14 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 18px;
+      font-size: 16px;
       color: #ffffff;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 0 8px rgba(255,255,255,0.3);
-      transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.2s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: transform 0.2s ease;
     }
 
     .close-btn:active {
       transform: scale(0.9);
-      background: rgba(255, 255, 255, 0.35);
     }
 
     .sheet-list {
@@ -308,7 +435,6 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      scrollbar-width: thin;
     }
 
     .sheet-item {
@@ -326,7 +452,7 @@
     .badge-gan { background: #d9534f; padding: 4px 8px; border-radius: 8px; font-weight: bold; font-size: 12px; }
 
     .bus-marker, .hub-marker {
-      background: rgba(40, 167, 69, 0.9);
+      background: rgba(40, 167, 69, 0.85);
       backdrop-filter: blur(10px);
       border: 2px solid rgba(255, 255, 255, 0.9);
       border-radius: 20px;
@@ -339,13 +465,14 @@
       cursor: pointer;
     }
 
-    .hub-marker { background: rgba(0, 86, 179, 0.9); }
+    .hub-marker { background: rgba(0, 86, 179, 0.85); }
   </style>
 </head>
 <body>
 
   <div id="map"></div>
 
+  <!-- Верхняя панель -->
   <div class="top-overlay">
     <div class="weather-card" onclick="toggleWeatherSheet()">
       <div class="liquid-weather-icon">
@@ -354,19 +481,38 @@
       </div>
       <span>+28°C</span>
     </div>
-  </div>
 
-  <!-- Окно погоды -->
-  <div class="glass-sheet" id="weatherSheet">
-    <div class="sheet-header">
-      <span>🌤 Погода: Газипаша — Аланья</span>
-      <div class="close-btn" onclick="toggleWeatherSheet()">✕</div>
-    </div>
-    <div class="sheet-list">
-      <div class="sheet-item"><span>Сейчас</span><span>⛅ +28°C, Ясно</span></div>
-      <div class="sheet-item"><span>Ночь</span><span>🌙 +21°C, Слабый ветер</span></div>
-      <div class="sheet-item"><span>Завтра днем</span><span>☀️ +30°C, Солнечно</span></div>
-      <div class="sheet-item"><span>Температура воды в море</span><span>🌊 +25°C</span></div>
+    <!-- Детализированная погода с мини-иконками -->
+    <div class="weather-popover" id="weatherSheet">
+      <div class="sheet-header">
+        <span>🌤 Погода: Газипаша</span>
+        <div class="close-btn" onclick="toggleWeatherSheet()">✕</div>
+      </div>
+      <div class="sheet-list">
+        <div class="sheet-item">
+          <span>Сейчас</span>
+          <span><span class="mini-icon mini-sun"></span>+28°C, Ясно</span>
+        </div>
+        <div class="sheet-item">
+          <span>Ночь</span>
+          <span><span class="mini-icon mini-moon"></span>+21°C, Ветер</span>
+        </div>
+        <div class="sheet-item">
+          <span>Температура воды</span>
+          <span><span class="mini-icon mini-water"></span>+25°C</span>
+        </div>
+      </div>
+      
+      <!-- Шкала Рассвет / Закат -->
+      <div class="sun-cycle-container">
+        <div class="sun-cycle-time">
+          <span>🌅 Восход 06:58</span>
+          <span>🌄 Закат 18:12</span>
+        </div>
+        <div class="sun-cycle-bar">
+          <div class="sun-cycle-dot"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -382,16 +528,25 @@
       <div class="sheet-item"><span class="badge-gal">GAL02</span><span>Газипаша - Аланья</span><b>07:16</b></div>
       <div class="sheet-item"><span class="badge-gan">GAN01</span><span>Газипаша - Анталья</span><b>08:01</b></div>
       <div class="sheet-item"><span class="badge-gal">GAL02</span><span>Газипаша - Аланья</span><b>08:16</b></div>
-      <div class="sheet-item"><span class="badge-gal">GAL02</span><span>Газипаша - Аланья</span><b>16:14</b></div>
-      <div class="sheet-item"><span class="badge-gal">GAL02</span><span>Газипаша - Аланья</span><b>17:14</b></div>
-      <div class="sheet-item"><span class="badge-gal">GAL02</span><span>Газипаша - Аланья</span><b>18:14</b></div>
     </div>
   </div>
 
+  <!-- Нижняя панель -->
   <div class="bottom-overlay">
-    <!-- Умный поиск -->
-    <div class="search-bar">
-      <input type="text" class="search-input" id="searchInput" placeholder="Поиск (автобус, погода)...">
+    <div class="search-container">
+      <div class="search-results-popover" id="searchResults">
+        <div class="sheet-header">
+          <span id="searchResultTitle">Результат</span>
+          <div class="close-btn" onclick="closeSearch()">✕</div>
+        </div>
+        <div id="searchResultBody" style="font-size: 13px; color: rgba(255,255,255,0.9);">
+          Введите запрос...
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <input type="text" class="search-input" id="searchInput" placeholder="Поиск (автобус, погода)...">
+      </div>
     </div>
 
     <div class="segmented-control-container">
@@ -411,92 +566,96 @@
     var otogarCoords = [36.2618, 32.3130];
     var map = L.map('map', { zoomControl: false }).setView(otogarCoords, 16);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19
-    }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
     var hubIcon = L.divIcon({
       html: '<div class="hub-marker" onclick="toggleBusSheet()">🚏 Gazipaşa Otogar</div>',
-      className: '',
-      iconSize: [160, 34],
-      iconAnchor: [80, 17]
+      className: '', iconSize: [160, 34], iconAnchor: [80, 17]
     });
     L.marker(otogarCoords, { icon: hubIcon }).addTo(map);
 
     var busIcon = L.divIcon({
       html: '<div class="bus-marker" onclick="toggleBusSheet()"><span>🚌</span> GAL02 • 3 мин</div>',
-      className: '',
-      iconSize: [150, 34],
-      iconAnchor: [75, -20]
+      className: '', iconSize: [150, 34], iconAnchor: [75, -20]
     });
     L.marker(otogarCoords, { icon: busIcon }).addTo(map);
 
     function toggleBusSheet() {
       document.getElementById('weatherSheet').classList.remove('open');
+      closeSearch();
       document.getElementById('busSheet').classList.toggle('open');
     }
 
     function toggleWeatherSheet() {
       document.getElementById('busSheet').classList.remove('open');
+      closeSearch();
       document.getElementById('weatherSheet').classList.toggle('open');
     }
 
-    /* Умный поиск */
+    function closeSearch() {
+      document.getElementById('searchResults').classList.remove('open');
+    }
+
     const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    const searchResultTitle = document.getElementById('searchResultTitle');
+    const searchResultBody = document.getElementById('searchResultBody');
+
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         const query = searchInput.value.toLowerCase().trim();
-        if (query.includes('транспорт') || query.includes('автобус') || query.includes('gal') || query.includes('otogar')) {
+        if (!query) return;
+
+        if (query.includes('транспорт') || query.includes('автобус') || query.includes('gal')) {
           toggleBusSheet();
-        } else if (query.includes('погод') || query.includes('weather') || query.includes('температур')) {
+        } else if (query.includes('погод') || query.includes('weather')) {
           toggleWeatherSheet();
         } else {
-          alert('Поиск по объектам: ' + query);
+          document.getElementById('busSheet').classList.remove('open');
+          document.getElementById('weatherSheet').classList.remove('open');
+          searchResultTitle.innerText = '🔍 ' + query;
+          searchResultBody.innerText = 'Найдено 3 точки в Газипаше по запросу "' + query + '"';
+          searchResults.classList.add('open');
         }
         searchInput.blur();
       }
     });
 
-    /* Логика линзы */
     const track = document.getElementById('segmentedTrack');
     const lens = document.getElementById('lensIndicator');
     const buttons = document.querySelectorAll('.segmented-btn');
+    let activeIndex = 0;
+    let isPressing = false;
 
-    function updateLens(btn) {
-      buttons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+    function updateLensPosition(index) {
+      activeIndex = index;
+      buttons.forEach((b, i) => b.classList.toggle('active', i === index));
 
+      const btn = buttons[index];
       const btnRect = btn.getBoundingClientRect();
       const trackRect = track.getBoundingClientRect();
 
       const leftOffset = btnRect.left - trackRect.left - 4;
-      const scaleStr = lens.classList.contains('pressing') ? ' scale(1.15)' : '';
+      const scaleStr = isPressing ? ' scale(1.15)' : '';
       lens.style.transform = `translateX(${leftOffset}px)${scaleStr}`;
       lens.style.width = `${btnRect.width}px`;
-
-      const type = btn.getAttribute('data-type');
-      if (type === 'bus') {
-        toggleBusSheet();
-      } else {
-        document.getElementById('busSheet').classList.remove('open');
-        document.getElementById('weatherSheet').classList.remove('open');
-      }
     }
 
-    window.addEventListener('load', () => updateLens(buttons[0]));
+    window.addEventListener('load', () => updateLensPosition(0));
 
-    buttons.forEach(btn => {
-      btn.addEventListener('click', () => updateLens(btn));
-    });
-
-    let isPressing = false;
-
-    function handleMove(clientX) {
-      if (!isPressing) return;
-      buttons.forEach(btn => {
+    function handleInputMove(clientX) {
+      buttons.forEach((btn, i) => {
         const rect = btn.getBoundingClientRect();
         if (clientX >= rect.left && clientX <= rect.right) {
-          updateLens(btn);
+          if (activeIndex !== i) {
+            updateLensPosition(i);
+            const type = btn.getAttribute('data-type');
+            if (type === 'bus') toggleBusSheet();
+            else {
+              document.getElementById('busSheet').classList.remove('open');
+              document.getElementById('weatherSheet').classList.remove('open');
+            }
+          }
         }
       });
     }
@@ -504,57 +663,53 @@
     track.addEventListener('touchstart', (e) => {
       isPressing = true;
       lens.classList.add('pressing');
-      handleMove(e.touches[0].clientX);
+      handleInputMove(e.touches[0].clientX);
     }, { passive: true });
 
     track.addEventListener('touchmove', (e) => {
-      handleMove(e.touches[0].clientX);
+      handleInputMove(e.touches[0].clientX);
     }, { passive: true });
 
     track.addEventListener('touchend', () => {
       isPressing = false;
       lens.classList.remove('pressing');
-      const activeBtn = document.querySelector('.segmented-btn.active');
-      if (activeBtn) updateLens(activeBtn);
+      updateLensPosition(activeIndex);
     });
 
     track.addEventListener('mousedown', (e) => {
       isPressing = true;
       lens.classList.add('pressing');
-      handleMove(e.clientX);
+      handleInputMove(e.clientX);
     });
+
     window.addEventListener('mousemove', (e) => {
-      if (isPressing) handleMove(e.clientX);
+      if (isPressing) handleInputMove(e.clientX);
     });
+
     window.addEventListener('mouseup', () => {
       if (isPressing) {
         isPressing = false;
         lens.classList.remove('pressing');
-        const activeBtn = document.querySelector('.segmented-btn.active');
-        if (activeBtn) updateLens(activeBtn);
+        updateLensPosition(activeIndex);
       }
     });
 
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v7';
+        const CACHE_NAME = 'geoglass-v9';
         self.addEventListener('install', e => {
           e.waitUntil(
-            caches.open(CACHE_NAME).then(cache => {
-              return cache.addAll(['./', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']);
-            })
+            caches.open(CACHE_NAME).then(cache => cache.addAll(['./', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']))
           );
         });
         self.addEventListener('fetch', e => {
           e.respondWith(
-            caches.match(e.request).then(response => {
-              return response || fetch(e.request).then(fetchRes => {
-                return caches.open(CACHE_NAME).then(cache => {
-                  cache.put(e.request, fetchRes.clone());
-                  return fetchRes;
-                });
+            caches.match(e.request).then(res => res || fetch(e.request).then(fetchRes => {
+              return caches.open(CACHE_NAME).then(cache => {
+                cache.put(e.request, fetchRes.clone());
+                return fetchRes;
               });
-            })
+            }))
           );
         });
       `;
