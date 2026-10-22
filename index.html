@@ -130,29 +130,29 @@
       50% { transform: translateX(2px); }
     }
 
-    /* Фирменные мини-иконки погоды без системных эмодзи */
+    /* Фирменные мини-иконки погоды без эмодзи */
     .mini-icon {
-      width: 16px;
-      height: 16px;
+      width: 14px;
+      height: 14px;
       position: relative;
       display: inline-block;
       vertical-align: middle;
-      margin-right: 8px;
+      margin-right: 6px;
     }
     .mini-sun {
       background: radial-gradient(circle, #ffea00 0%, #ff9900 100%);
       border-radius: 50%;
-      box-shadow: 0 0 8px rgba(255, 200, 0, 0.9);
+      box-shadow: 0 0 6px rgba(255, 200, 0, 0.9);
     }
     .mini-moon {
       background: radial-gradient(circle, #c2e9fb 0%, #a1c4fd 100%);
       border-radius: 50%;
-      box-shadow: 0 0 8px rgba(160, 200, 255, 0.7);
+      box-shadow: 0 0 6px rgba(160, 200, 255, 0.7);
     }
     .mini-water {
       background: radial-gradient(circle, #00c6ff 0%, #0072ff 100%);
       border-radius: 50%;
-      box-shadow: 0 0 8px rgba(0, 150, 255, 0.7);
+      box-shadow: 0 0 6px rgba(0, 150, 255, 0.7);
     }
 
     /* Подробное окно погоды рядом с виджетом */
@@ -482,10 +482,10 @@
       <span>+28°C</span>
     </div>
 
-    <!-- Детализированная погода с мини-иконками -->
+    <!-- Детализированная погода без системных эмодзи -->
     <div class="weather-popover" id="weatherSheet">
       <div class="sheet-header">
-        <span>🌤 Погода: Газипаша</span>
+        <span><span class="mini-icon mini-sun"></span>Погода: Газипаша</span>
         <div class="close-btn" onclick="toggleWeatherSheet()">✕</div>
       </div>
       <div class="sheet-list">
@@ -641,20 +641,34 @@
       lens.style.width = `${btnRect.width}px`;
     }
 
+    function applyCategorySelection(index) {
+      updateLensPosition(index);
+      const btn = buttons[index];
+      const type = btn.getAttribute('data-type');
+      
+      document.getElementById('weatherSheet').classList.remove('open');
+      closeSearch();
+
+      if (type === 'bus') {
+        document.getElementById('busSheet').classList.add('open');
+      } else {
+        document.getElementById('busSheet').classList.remove('open');
+      }
+    }
+
     window.addEventListener('load', () => updateLensPosition(0));
+
+    // Клик по кнопке категории
+    buttons.forEach((btn, i) => {
+      btn.addEventListener('click', () => applyCategorySelection(i));
+    });
 
     function handleInputMove(clientX) {
       buttons.forEach((btn, i) => {
         const rect = btn.getBoundingClientRect();
         if (clientX >= rect.left && clientX <= rect.right) {
           if (activeIndex !== i) {
-            updateLensPosition(i);
-            const type = btn.getAttribute('data-type');
-            if (type === 'bus') toggleBusSheet();
-            else {
-              document.getElementById('busSheet').classList.remove('open');
-              document.getElementById('weatherSheet').classList.remove('open');
-            }
+            updateLensPosition(i); // Только двигаем линзу визуально при свайпе без открытия окон
           }
         }
       });
@@ -673,7 +687,7 @@
     track.addEventListener('touchend', () => {
       isPressing = false;
       lens.classList.remove('pressing');
-      updateLensPosition(activeIndex);
+      applyCategorySelection(activeIndex); // Открываем/закрываем окно по отпусканию пальца
     });
 
     track.addEventListener('mousedown', (e) => {
@@ -690,13 +704,13 @@
       if (isPressing) {
         isPressing = false;
         lens.classList.remove('pressing');
-        updateLensPosition(activeIndex);
+        applyCategorySelection(activeIndex); // Открываем/закрываем окно по отпусканию мыши
       }
     });
 
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v9';
+        const CACHE_NAME = 'geoglass-v11';
         self.addEventListener('install', e => {
           e.waitUntil(
             caches.open(CACHE_NAME).then(cache => cache.addAll(['./', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']))
