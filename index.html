@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Geoglass — Gazipaşa-Alanya Corridor</title>
   
   <meta name="theme-color" content="#0b131e">
@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Geoglass">
   
+  <!-- Расширенный манифест для PWA на iOS и Android -->
   <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Geoglass%22,%22short_name%22:%22Geoglass%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%230b131e%22,%22theme_color%22:%22%230b131e%22}">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
@@ -40,7 +41,6 @@
       background: #0b131e;
     }
 
-    /* Фирменный глубокий темно-синий тон visionOS для карты */
     .leaflet-tile {
       filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3);
     }
@@ -49,10 +49,11 @@
       display: none !important;
     }
 
-    /* Верхняя панель */
+    /* Верхняя панель с учетом безопасной зоны iPhone */
     .top-overlay {
       position: absolute;
-      top: 16px; left: 16px; right: 16px;
+      top: max(16px, env(safe-area-inset-top)); 
+      left: 16px; right: 16px;
       display: flex; flex-direction: column; align-items: flex-start;
       z-index: 10; pointer-events: none;
     }
@@ -115,8 +116,13 @@
     }
     .sun-cycle-time { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.8); font-weight: 600; }
 
-    /* Нижняя панель */
-    .bottom-overlay { position: absolute; bottom: 24px; left: 16px; right: 16px; z-index: 10; pointer-events: none; }
+    /* Нижняя панель с учетом безопасной зоны iPhone */
+    .bottom-overlay {
+      position: absolute;
+      bottom: max(24px, env(safe-area-inset-bottom));
+      left: 16px; right: 16px;
+      z-index: 10; pointer-events: none;
+    }
     .bottom-overlay > * { pointer-events: auto; }
 
     .search-container { position: relative; width: 240px; margin-bottom: 12px; }
@@ -410,7 +416,6 @@
 
     var map = L.map('map', { zoomControl: false }).setView(otogarCoords, 16);
 
-    // Стандартные тайлы OSM с глубоким темным фильтром visionOS
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
     var hubIcon = L.divIcon({
@@ -473,7 +478,6 @@
       document.getElementById('searchResults').classList.remove('open');
     }
 
-    /* VR Вращение панорамы свайпом */
     const panoStage = document.getElementById('panoStage');
     const panoScene = document.getElementById('panoScene');
     let isPanoDragging = false;
@@ -590,6 +594,7 @@
     });
 
     function handleInputMove(clientX) {
+      buttons.button?.forEach?.(...) // safe check
       buttons.forEach((btn, i) => {
         const rect = btn.getBoundingClientRect();
         const extra = 15;
@@ -637,7 +642,7 @@
 
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v19';
+        const CACHE_NAME = 'geoglass-v20';
         self.addEventListener('install', e => {
           e.waitUntil(
             caches.open(CACHE_NAME).then(cache => cache.addAll(['./', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']))
