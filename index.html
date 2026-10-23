@@ -12,6 +12,7 @@
   
   <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Geoglass%22,%22short_name%22:%22Geoglass%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%230b131e%22,%22theme_color%22:%22%230b131e%22}">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
     * {
@@ -115,72 +116,116 @@
     }
     .sun-cycle-time { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.8); font-weight: 600; }
 
-    /* Нижняя панель (автоматически учитывает нижнюю панель Safari и safe-area) */
-    .bottom-overlay {
+    /* Поиск */
+    .search-container {
       position: absolute;
-      bottom: calc(env(safe-area-inset-bottom) + 70px);
-      left: 16px; right: 16px;
-      z-index: 10; pointer-events: none;
+      top: max(16px, env(safe-area-inset-top));
+      right: 16px;
+      z-index: 10;
     }
-    .bottom-overlay > * { pointer-events: auto; }
-
-    .search-container { position: relative; width: 240px; margin-bottom: 12px; }
     .search-bar {
-      display: flex; align-items: center; width: 100%;
+      display: flex; align-items: center; width: 180px;
       background: rgba(15, 34, 61, 0.45); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border-radius: 26px; padding: 10px 16px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 22px; padding: 10px 16px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      transition: width 0.3s ease;
     }
+    .search-bar:focus-within { width: 240px; }
     .search-input {
       flex: 1; border: none; background: transparent; font-size: 14px; color: #ffffff; font-weight: 600; outline: none; user-select: text; -webkit-user-select: text;
     }
     .search-input::placeholder { color: rgba(255, 255, 255, 0.55); }
 
     .search-results-popover {
-      position: absolute; bottom: 54px; left: 0; width: 280px;
+      position: absolute; top: 60px; right: 0; width: 280px;
       background: rgba(15, 34, 61, 0.65); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
       border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 20px; padding: 14px; color: #ffffff;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5); opacity: 0; transform: translateY(15px) scale(0.95);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5); opacity: 0; transform: translateY(-10px) scale(0.95);
       pointer-events: none; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .search-results-popover.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 
-    /* Бар категорий */
-    .segmented-control-container { width: 100%; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
-    .segmented-control-container::-webkit-scrollbar { display: none; }
-
-    .segmented-track {
-      position: relative; display: inline-flex;
-      background: rgba(15, 34, 61, 0.45); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 28px; padding: 4px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4); touch-action: none;
+    /* Плавающий бар категорий (с 5 пунктами) */
+    .floating-tab-bar { 
+      position: fixed; 
+      bottom: max(18px, env(safe-area-inset-bottom)); 
+      left: 16px; 
+      right: 16px; 
+      height: 68px; 
+      display: flex; 
+      justify-content: space-around; 
+      align-items: center; 
+      border-radius: 34px; 
+      border: 1px solid rgba(255, 255, 255, 0.35); 
+      background: rgba(15, 34, 61, 0.75);
+      backdrop-filter: blur(35px) saturate(180%); 
+      -webkit-backdrop-filter: blur(35px) saturate(180%); 
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.5); 
+      z-index: 999; 
+      padding: 4px;
+      touch-action: none;
     }
 
-    .lens-indicator {
-      position: absolute; top: 4px; left: 4px; height: calc(100% - 8px);
-      background: rgba(255, 255, 255, 0.28); backdrop-filter: blur(25px) saturate(190%); -webkit-backdrop-filter: blur(25px) saturate(190%);
-      border: 1.5px solid rgba(255, 255, 255, 0.7); border-radius: 24px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 0 12px rgba(255, 255, 255, 0.4);
-      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
-      pointer-events: none; z-index: 1; transform-origin: center center;
-    }
-    .lens-indicator.pressing {
-      transform: scale(1.25) !important; 
-      box-shadow: 0 14px 38px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.7);
-      background: rgba(255, 255, 255, 0.42);
+    .nav-lens-indicator {
+      position: absolute;
+      top: 4px;
+      left: 0;
+      height: calc(100% - 8px);
+      background: rgba(255, 255, 255, 0.35);
+      backdrop-filter: blur(30px) saturate(200%);
+      -webkit-backdrop-filter: blur(30px) saturate(200%);
+      border: 1.5px solid rgba(255, 255, 255, 0.85);
+      border-radius: 28px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35), inset 0 0 14px rgba(255, 255, 255, 0.8);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s ease;
+      pointer-events: none;
+      z-index: 1;
+      will-change: transform, width;
     }
 
-    .segmented-btn {
-      position: relative; z-index: 2; background: transparent; border: none;
-      color: rgba(255, 255, 255, 0.7); padding: 10px 16px; font-size: 13px; font-weight: 600;
-      white-space: nowrap; cursor: pointer; transition: color 0.2s ease; display: flex; align-items: center; gap: 6px;
+    .nav-lens-indicator.pressing {
+      transform: translateY(-2px) scale(1.08);
+      background: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), inset 0 0 18px rgba(255, 255, 255, 0.95);
     }
-    .segmented-btn.active { color: #ffffff; font-weight: 700; text-shadow: 0 0 8px rgba(255,255,255,0.4); }
 
-    /* Модальные окна (аккуратный отступ над нижней панелью) */
+    .tab-item { 
+      position: relative;
+      z-index: 2;
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center; 
+      flex: 1; 
+      height: 100%; 
+      cursor: pointer; 
+      background: transparent; 
+      border: none; 
+      color: rgba(255, 255, 255, 0.7);
+      transition: color 0.3s ease;
+      touch-action: none;
+    }
+
+    .tab-item.active {
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .tab-text { 
+      font-size: 11px; 
+      margin-top: 3px; 
+      pointer-events: none; 
+      font-weight: 500;
+    }
+
+    .tab-item i { 
+      pointer-events: none; 
+    }
+
+    /* Модальные окна */
     .glass-sheet {
-      position: absolute; bottom: 145px; left: 16px; right: 16px;
-      background: rgba(15, 34, 61, 0.75); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+      position: absolute; bottom: 105px; left: 16px; right: 16px;
+      background: rgba(15, 34, 61, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
       border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 24px; padding: 18px; color: #fff;
       box-shadow: 0 15px 35px rgba(0,0,0,0.5); z-index: 20; opacity: 0; transform: translateY(25px) scale(0.96);
       pointer-events: none; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -269,7 +314,7 @@
 
   <div id="map"></div>
 
-  <!-- Верхняя панель -->
+  <!-- Верхняя панель: Погода -->
   <div class="top-overlay">
     <div class="weather-card" onclick="toggleWeatherSheet()">
       <div class="liquid-weather-icon">
@@ -303,6 +348,22 @@
     </div>
   </div>
 
+  <!-- Верхняя панель: Поиск -->
+  <div class="search-container">
+    <div class="search-bar">
+      <input type="text" class="search-input" id="searchInput" placeholder="Поиск...">
+    </div>
+    <div class="search-results-popover" id="searchResults">
+      <div class="sheet-header">
+        <span id="searchResultTitle">Результат</span>
+        <div class="close-btn" onclick="closeSearch()">✕</div>
+      </div>
+      <div id="searchResultBody" style="font-size: 13px; color: rgba(255,255,255,0.9);">
+        Введите запрос...
+      </div>
+    </div>
+  </div>
+
   <!-- Окно транспорта -->
   <div class="glass-sheet" id="busSheet">
     <div class="sheet-header">
@@ -317,14 +378,6 @@
       <div class="sheet-item">
         <div><span class="badge-gan">GAN01</span> <b style="margin-left: 6px;">Газипаша - Анталья</b><div style="font-size: 11px; color: rgba(255,255,255,0.6);">Mehmet Oğuz Blv</div></div>
         <span style="color: #ffcc00; font-weight: 700;">06:00 • 08:00 • 11:00</span>
-      </div>
-      <div class="sheet-item">
-        <div><span class="badge-gal">GAL02</span> <b style="margin-left: 6px;">Газипаша - Аланья</b><div style="font-size: 11px; color: rgba(255,255,255,0.6);">Отправление</div></div>
-        <span style="font-weight: 700;">07:30 • 07:50</span>
-      </div>
-      <div class="sheet-item">
-        <div><span class="badge-gan">GAN01</span> <b style="margin-left: 6px;">Газипаша - Анталья</b><div style="font-size: 11px; color: rgba(255,255,255,0.6);">Рейс дня</div></div>
-        <span style="font-weight: 700;">13:30</span>
       </div>
     </div>
   </div>
@@ -345,16 +398,6 @@
 
     <div style="font-size: 13px; color: rgba(255,255,255,0.85); margin-bottom: 10px; line-height: 1.4;">
       Экологическая память: вместо холодных плит здесь высажены туи. Каждое дерево хранит память о добрых делах и растет с заботой близких.
-    </div>
-    <div class="sheet-list">
-      <div class="sheet-item">
-        <span>Статус роста дерева</span>
-        <b style="color: #4cd964;">🌿 Здоровое (3 года)</b>
-      </div>
-      <div class="sheet-item">
-        <span>Памятная табличка</span>
-        <span style="font-size: 12px; color: rgba(255,255,255,0.8);">«Создал парк для детей, посадил 50 деревьев»</span>
-      </div>
     </div>
   </div>
 
@@ -389,34 +432,29 @@
     </div>
   </div>
 
-  <!-- Нижняя панель -->
-  <div class="bottom-overlay">
-    <div class="search-container">
-      <div class="search-results-popover" id="searchResults">
-        <div class="sheet-header">
-          <span id="searchResultTitle">Результат</span>
-          <div class="close-btn" onclick="closeSearch()">✕</div>
-        </div>
-        <div id="searchResultBody" style="font-size: 13px; color: rgba(255,255,255,0.9);">
-          Введите запрос...
-        </div>
-      </div>
-
-      <div class="search-bar">
-        <input type="text" class="search-input" id="searchInput" placeholder="Поиск (транспорт, погода)...">
-      </div>
-    </div>
-
-    <div class="segmented-control-container">
-      <div class="segmented-track" id="segmentedTrack">
-        <div class="lens-indicator" id="lensIndicator"></div>
-        <button class="segmented-btn" data-type="all">Все</button>
-        <button class="segmented-btn" data-type="walk">Прогулки</button>
-        <button class="segmented-btn" data-type="food">Еда</button>
-        <button class="segmented-btn" data-type="bus">🚌 Транспорт</button>
-        <button class="segmented-btn" data-type="memorial">🌱 Память</button>
-      </div>
-    </div>
+  <!-- Плавающая панель снизу (5 пунктов меню) -->
+  <div class="floating-tab-bar" id="floatingTabBar">
+    <div class="nav-lens-indicator" id="navLens"></div>
+    <button class="tab-item active" data-tab="all" onclick="selectCategory('all', 0)">
+      <i class="fa-solid fa-globe" style="font-size: 18px;"></i>
+      <span class="tab-text">Все</span>
+    </button>
+    <button class="tab-item" data-tab="walk" onclick="selectCategory('walk', 1)">
+      <i class="fa-solid fa-person-walking" style="font-size: 18px;"></i>
+      <span class="tab-text">Прогулки</span>
+    </button>
+    <button class="tab-item" data-tab="food" onclick="selectCategory('food', 2)">
+      <i class="fa-solid fa-utensils" style="font-size: 18px;"></i>
+      <span class="tab-text">Еда</span>
+    </button>
+    <button class="tab-item" data-tab="bus" onclick="selectCategory('bus', 3)">
+      <i class="fa-solid fa-bus" style="font-size: 18px;"></i>
+      <span class="tab-text">Транспорт</span>
+    </button>
+    <button class="tab-item" data-tab="memorial" onclick="selectCategory('memorial', 4)">
+      <i class="fa-solid fa-seedling" style="font-size: 18px;"></i>
+      <span class="tab-text">Память</span>
+    </button>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -428,34 +466,17 @@
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
-    // --- ПРИБРЕЖНЫЕ МАРШРУТЫ (вдоль трассы D400) ---
     var gal02Coords = [
-      [36.2618, 32.3130],
-      [36.2750, 32.2900],
-      [36.2950, 32.2550],
-      [36.3100, 32.2300],
-      [36.3500, 32.1800],
-      [36.4100, 32.1000],
-      [36.4800, 32.0400],
-      [36.5438, 31.9998]
+      [36.2618, 32.3130], [36.2750, 32.2900], [36.2950, 32.2550], [36.3100, 32.2300],
+      [36.3500, 32.1800], [36.4100, 32.1000], [36.4800, 32.0400], [36.5438, 31.9998]
     ];
-    var gal02Polyline = L.polyline(gal02Coords, {
-      color: '#007aff', weight: 5, opacity: 0.85, lineCap: 'round', lineJoin: 'round'
-    });
+    var gal02Polyline = L.polyline(gal02Coords, { color: '#007aff', weight: 5, opacity: 0.85, lineCap: 'round', lineJoin: 'round' });
 
     var gan01Coords = [
-      [36.2618, 32.3130],
-      [36.3100, 32.2300],
-      [36.5438, 31.9998],
-      [36.5800, 31.8500],
-      [36.6800, 31.5500],
-      [36.7800, 31.4500],
-      [36.8500, 31.0500],
-      [36.8969, 30.7133]
+      [36.2618, 32.3130], [36.3100, 32.2300], [36.5438, 31.9998], [36.5800, 31.8500],
+      [36.6800, 31.5500], [36.7800, 31.4500], [36.8500, 31.0500], [36.8969, 30.7133]
     ];
-    var gan01Polyline = L.polyline(gan01Coords, {
-      color: '#ff3b30', weight: 4, opacity: 0.75, dashArray: '8, 8', lineCap: 'round', lineJoin: 'round'
-    });
+    var gan01Polyline = L.polyline(gan01Coords, { color: '#ff3b30', weight: 4, opacity: 0.75, dashArray: '8, 8', lineCap: 'round', lineJoin: 'round' });
 
     function showTransportRoutes() {
       if (!map.hasLayer(gal02Polyline)) gal02Polyline.addTo(map);
@@ -484,14 +505,6 @@
     });
     L.marker(memorialCoords, { icon: memorialIcon }).addTo(map);
 
-    function syncLensToType(targetType) {
-      buttons.forEach((btn, idx) => {
-        if (btn.getAttribute('data-type') === targetType) {
-          updateLensPosition(idx);
-        }
-      });
-    }
-
     function toggleBusSheet() {
       const busSheet = document.getElementById('busSheet');
       const isOpen = busSheet.classList.toggle('open');
@@ -501,11 +514,11 @@
       closeSearch();
 
       if (isOpen) {
-        syncLensToType('bus');
+        selectCategory('bus', 3);
         showTransportRoutes();
       } else {
         hideTransportRoutes();
-        syncLensToType('all');
+        selectCategory('all', 0);
       }
     }
 
@@ -517,7 +530,7 @@
       document.getElementById('memorialSheet').classList.remove('open');
       hideTransportRoutes();
       closeSearch();
-      if (!isOpen) syncLensToType('all');
+      if (!isOpen) selectCategory('all', 0);
     }
 
     function toggleMemorialSheet() {
@@ -530,9 +543,9 @@
       closeSearch();
 
       if (isOpen) {
-        syncLensToType('memorial');
+        selectCategory('memorial', 4);
       } else {
-        syncLensToType('all');
+        selectCategory('all', 0);
       }
     }
 
@@ -547,6 +560,7 @@
       document.getElementById('searchResults').classList.remove('open');
     }
 
+    // VR Свайпы
     const panoStage = document.getElementById('panoStage');
     const panoScene = document.getElementById('panoScene');
     let isPanoDragging = false;
@@ -591,6 +605,7 @@
       }
     });
 
+    // Поиск
     const searchInput = document.getElementById('searchInput');
     const searchResults = document.getElementById('searchResults');
     const searchResultTitle = document.getElementById('searchResultTitle');
@@ -615,108 +630,100 @@
           searchResultTitle.innerText = '🔍 ' + query;
           searchResultBody.innerText = 'Найдено в Газипаше по запросу "' + query + '"';
           searchResults.classList.add('open');
-          syncLensToType('all');
+          selectCategory('all', 0);
         }
         searchInput.blur();
       }
     });
 
-    const track = document.getElementById('segmentedTrack');
-    const lens = document.getElementById('lensIndicator');
-    const buttons = document.querySelectorAll('.segmented-btn');
-    let activeIndex = 0;
-    let isPressing = false;
+    // Управление плавающим баром и жидкой линзой
+    let activeTab = 'all';
+    let isNavPressing = false;
 
-    function updateLensPosition(index) {
-      activeIndex = index;
-      buttons.forEach((b, i) => b.classList.toggle('active', i === index));
+    function updateNavLens(tabName, scaleUp = false) {
+      const activeBtn = document.querySelector(`.tab-item[data-tab="${tabName}"]`);
+      const tabBar = document.getElementById('floatingTabBar');
+      const lens = document.getElementById('navLens');
+      if (!activeBtn || !tabBar || !lens) return;
 
-      const btn = buttons[index];
-      const btnRect = btn.getBoundingClientRect();
-      const trackRect = track.getBoundingClientRect();
-
-      const leftOffset = btnRect.left - trackRect.left - 4;
-      const scaleStr = isPressing ? ' scale(1.25)' : '';
+      const btnRect = activeBtn.getBoundingClientRect();
+      const barRect = tabBar.getBoundingClientRect();
+      const leftOffset = btnRect.left - barRect.left;
+      const scaleStr = scaleUp ? ' translateY(-2px) scale(1.08)' : '';
+      
       lens.style.transform = `translateX(${leftOffset}px)${scaleStr}`;
       lens.style.width = `${btnRect.width}px`;
     }
 
-    function applyCategorySelection(index) {
-      updateLensPosition(index);
-      const btn = buttons[index];
-      const type = btn.getAttribute('data-type');
-      
+    function selectCategory(tab, index) {
+      activeTab = tab;
+      document.querySelectorAll('.tab-item').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === index);
+      });
+      updateNavLens(tab, false);
+
       document.getElementById('weatherSheet').classList.remove('open');
       document.getElementById('busSheet').classList.remove('open');
       document.getElementById('memorialSheet').classList.remove('open');
       closeSearch();
 
-      if (type === 'bus') {
+      if (tab === 'bus') {
         document.getElementById('busSheet').classList.add('open');
         showTransportRoutes();
       } else {
         hideTransportRoutes();
-        if (type === 'memorial') {
+        if (tab === 'memorial') {
           document.getElementById('memorialSheet').classList.add('open');
         }
       }
     }
 
-    window.addEventListener('load', () => updateLensPosition(0));
+    window.addEventListener('DOMContentLoaded', () => updateNavLens(activeTab, false));
+    window.addEventListener('resize', () => updateNavLens(activeTab, false));
 
-    buttons.forEach((btn, i) => {
-      btn.addEventListener('click', () => applyCategorySelection(i));
-    });
+    const tabBar = document.getElementById('floatingTabBar');
+    const lens = document.getElementById('navLens');
+    const buttons = document.querySelectorAll('.tab-item');
 
-    function handleInputMove(clientX) {
-      buttons.forEach((btn, i) => {
+    function getTabByX(clientX) {
+      let closestTab = activeTab;
+      let minDistance = Infinity;
+      buttons.forEach(btn => {
         const rect = btn.getBoundingClientRect();
-        const extra = 15;
-        if (clientX >= rect.left - extra && clientX <= rect.right + extra) {
-          if (activeIndex !== i) {
-            updateLensPosition(i);
-          }
-        }
+        const center = rect.left + rect.width / 2;
+        const dist = Math.abs(clientX - center);
+        if (dist < minDistance) { minDistance = dist; closestTab = btn.getAttribute('data-tab'); }
       });
+      return closestTab;
     }
 
-    track.addEventListener('touchstart', (e) => {
-      isPressing = true;
+    tabBar.addEventListener('touchstart', (e) => {
+      isNavPressing = true;
       lens.classList.add('pressing');
-      handleInputMove(e.touches[0].clientX);
+      const tab = getTabByX(e.touches[0].clientX);
+      updateNavLens(tab, true);
     }, { passive: true });
 
-    track.addEventListener('touchmove', (e) => {
-      handleInputMove(e.touches[0].clientX);
+    tabBar.addEventListener('touchmove', (e) => {
+      if (!isNavPressing) return;
+      const tab = getTabByX(e.touches[0].clientX);
+      updateNavLens(tab, true);
     }, { passive: true });
 
-    track.addEventListener('touchend', () => {
-      isPressing = false;
+    tabBar.addEventListener('touchend', (e) => {
+      if (!isNavPressing) return;
+      isNavPressing = false;
       lens.classList.remove('pressing');
-      applyCategorySelection(activeIndex);
-    });
-
-    track.addEventListener('mousedown', (e) => {
-      isPressing = true;
-      lens.classList.add('pressing');
-      handleInputMove(e.clientX);
-    });
-
-    window.addEventListener('mousemove', (e) => {
-      if (isPressing) handleInputMove(e.clientX);
-    });
-
-    window.addEventListener('mouseup', () => {
-      if (isPressing) {
-        isPressing = false;
-        lens.classList.remove('pressing');
-        applyCategorySelection(activeIndex);
+      const targetTab = getTabByX(e.changedTouches[0].clientX);
+      const targetIdx = Array.from(buttons).findIndex(b => b.getAttribute('data-tab') === targetTab);
+      if (targetIdx !== -1) {
+        selectCategory(targetTab, targetIdx);
       }
     });
 
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v27';
+        const CACHE_NAME = 'geoglass-v28';
         self.addEventListener('install', e => {
           e.waitUntil(
             caches.open(CACHE_NAME).then(cache => cache.addAll(['./', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']))
@@ -739,4 +746,3 @@
   </script>
 </body>
 </html>
-
