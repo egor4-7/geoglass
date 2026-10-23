@@ -165,6 +165,12 @@
       z-index: 999; 
       padding: 4px;
       touch-action: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .floating-tab-bar.hidden {
+      opacity: 0;
+      transform: translateY(100px);
+      pointer-events: none;
     }
 
     .nav-lens-indicator {
@@ -272,44 +278,88 @@
     .tree-icon-3d { font-size: 38px; animation: floatTree 3s ease-in-out infinite; }
     @keyframes floatTree { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-5px) scale(1.08); } }
 
-    /* РЕАЛИСТИЧНЫЙ VR ПРОСМОТРЩИК (360 фото-сфера стиль) */
+    /* ТОЧНЫЙ СТИЛЬ РЕАЛИСТИЧНОГО 360 ТУРА КАК НА СКРИНШОТЕ */
     .immersive-pano-modal {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(5, 10, 20, 0.92); backdrop-filter: blur(35px); -webkit-backdrop-filter: blur(35px);
-      z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      opacity: 0; pointer-events: none; transition: opacity 0.35s ease;
+      background: #000; z-index: 1000; display: flex; flex-direction: column;
+      opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
     }
     .immersive-pano-modal.open { opacity: 1; pointer-events: auto; }
 
-    .pano-stage {
-      position: relative; width: 92%; max-width: 680px; height: 420px;
-      background: url('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?q=80&w=1600&auto=format&fit=crop') no-repeat center center;
-      background-size: cover;
-      border-radius: 28px; border: 1.5px solid rgba(255,255,255,0.4);
-      box-shadow: 0 25px 60px rgba(0,0,0,0.8);
-      overflow: hidden; touch-action: pan-x; cursor: grab;
-    }
-    .pano-stage:active { cursor: grabbing; }
-
-    /* Полупрозрачный градиентный оверлей для глубины */
-    .pano-stage::after {
-      content: '';
+    .pano-stage-fullscreen {
       position: absolute; inset: 0;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 100%);
-      pointer-events: none;
+      background: url('https://images.unsplash.com/photo-1519331379826-f10be5486c6f?q=80&w=2200&auto=format&fit=crop') no-repeat center center;
+      background-size: cover;
+      overflow: hidden; touch-action: none; cursor: grab;
     }
+    .pano-stage-fullscreen:active { cursor: grabbing; }
 
-    .pano-scene-content {
-      position: absolute; top: 0; left: 0; height: 100%; width: 300%;
+    .pano-scene-360 {
+      position: absolute; top: 0; left: 0; height: 100%; width: 400%;
       display: flex; align-items: center; justify-content: space-around;
-      transition: transform 0.1s ease-out; z-index: 2; padding: 0 50px;
+      will-change: transform; z-index: 2; padding: 0 100px;
     }
 
-    .pano-tree-item {
-      display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 20px;
-      background: rgba(15, 34, 61, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border-radius: 22px; border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 15px 35px rgba(0,0,0,0.7);
-      text-align: center; width: 200px;
+    /* Карточки деревьев в VR */
+    .pano-tree-card {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px 16px;
+      background: rgba(10, 20, 35, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-radius: 18px; border: 1px solid rgba(255,255,255,0.35); box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+      color: #fff; width: 190px;
+    }
+
+    /* Верхний левый заголовок */
+    .pano-top-badge {
+      position: absolute;
+      top: max(20px, env(safe-area-inset-top));
+      left: 20px;
+      background: rgba(10, 20, 35, 0.65);
+      backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 8px 16px; border-radius: 24px; color: #fff; font-weight: 600; font-size: 13px;
+      z-index: 1010; box-shadow: 0 8px 20px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 6px;
+    }
+
+    /* Верхняя правая кнопка закрытия (крестик) */
+    .pano-close-btn {
+      position: absolute;
+      top: max(20px, env(safe-area-inset-top));
+      right: 20px;
+      width: 38px; height: 38px;
+      background: rgba(10, 20, 35, 0.65);
+      backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 16px; cursor: pointer; z-index: 1010;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .pano-close-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.3); }
+
+    /* Нижний центр: подсказка свайпа */
+    .pano-hint-pill {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(10, 20, 35, 0.7);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 8px 18px; border-radius: 20px; color: #fff; font-size: 12px; font-weight: 500;
+      z-index: 1010; box-shadow: 0 8px 25px rgba(0,0,0,0.5); white-space: nowrap; pointer-events: none;
+    }
+
+    /* Нижняя правая кнопка информации */
+    .pano-info-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(10, 20, 35, 0.7);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 10px 16px; border-radius: 22px; color: #fff; font-size: 12px; font-weight: 600;
+      z-index: 1010; box-shadow: 0 8px 25px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; cursor: pointer;
     }
   </style>
 </head>
@@ -404,34 +454,35 @@
     </div>
   </div>
 
-  <!-- Реалистичный полноэкранный VR просмотрщик -->
+  <!-- Полноэкранный VR Тур на 360 градусов (в точности как на вашем фото) -->
   <div class="immersive-pano-modal" id="panoModal">
-    <div style="width: 92%; max-width: 680px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; color: #fff;">
-      <span style="font-weight: 700; font-size: 16px;">🌿 Реалистичная VR панорама (Свайпайте для обзора)</span>
-      <div class="close-btn" onclick="closeImmersivePano()">✕</div>
-    </div>
+    <div class="pano-top-badge">🌿 Аллея добрых дел (360° Тур)</div>
+    <div class="pano-close-btn" onclick="closeImmersivePano()">✕</div>
     
-    <div class="pano-stage" id="panoStage">
-      <div class="pano-scene-content" id="panoScene">
-        <div class="pano-tree-item">
-          <span style="font-size: 38px;">🌲</span>
-          <b style="color: #fff; font-size: 13px;">Туя №102 (Левая сторона)</b>
+    <div class="pano-stage-fullscreen" id="panoStage">
+      <div class="pano-scene-360" id="panoScene">
+        <div class="pano-tree-card" style="margin-right: 150px;">
+          <span style="font-size: 28px;">🌲</span>
+          <b style="font-size: 12px;">Туя №102 (Левая сторона)</b>
           <span style="font-size: 11px; color: #4cd964;">«Посадил аллею у школы»</span>
         </div>
         
-        <div class="pano-tree-item" style="border: 2px solid #2ecc71; background: rgba(46,204,113,0.3);">
-          <span style="font-size: 42px;">🌳</span>
-          <b style="color: #fff; font-size: 14px;">Туя №104 (Ваше дерево)</b>
+        <div class="pano-tree-card" style="border: 1.5px solid #2ecc71; background: rgba(46,204,113,0.25); margin-left: 80px; margin-right: 80px;">
+          <span style="font-size: 32px;">🌳</span>
+          <b style="font-size: 13px;">Туя №104 (Ваше дерево)</b>
           <span style="font-size: 11px; color: #ffcc00;">«Создал парк для детей»</span>
         </div>
 
-        <div class="pano-tree-item">
-          <span style="font-size: 38px;">🌲</span>
-          <b style="color: #fff; font-size: 13px;">Туя №106 (Правая сторона)</b>
+        <div class="pano-tree-card" style="margin-left: 150px;">
+          <span style="font-size: 28px;">🌲</span>
+          <b style="font-size: 12px;">Туя №106 (Правая сторона)</b>
           <span style="font-size: 11px; color: #4cd964;">«Помог построить больницу»</span>
         </div>
       </div>
     </div>
+
+    <div class="pano-hint-pill">🌐 Проведите пальцем, чтобы осмотреться на 360° ↔</div>
+    <div class="pano-info-btn" onclick="toggleMemorialSheet()"><i class="fa-solid fa-circle-info"></i> Информация</div>
   </div>
 
   <!-- Плавающая панель снизу (5 пунктов меню) -->
@@ -597,24 +648,29 @@
       }
     }
 
+    // Открытие/закрытие VR тура с полным скрытием нижнего бара
     function openImmersivePano() {
       document.getElementById('panoModal').classList.add('open');
+      document.getElementById('floatingTabBar').classList.add('hidden');
     }
     function closeImmersivePano() {
       document.getElementById('panoModal').classList.remove('open');
+      document.getElementById('floatingTabBar').classList.remove('hidden');
     }
 
     function closeSearch() {
       document.getElementById('searchResults').classList.remove('open');
     }
 
-    // Реалистичный свайп панорамы с инерцией
+    // 360 панорамный свайп
     const panoStage = document.getElementById('panoStage');
     const panoScene = document.getElementById('panoScene');
     let isPanoDragging = false;
     let startX = 0;
-    let currentTranslateX = 0;
-    let prevTranslateX = 0;
+    let currentTranslateX = -300;
+    let prevTranslateX = -300;
+
+    panoScene.style.transform = `translateX(${currentTranslateX}px)`;
 
     panoStage.addEventListener('touchstart', (e) => {
       isPanoDragging = true;
@@ -625,7 +681,7 @@
       if (!isPanoDragging) return;
       const currentX = e.touches[0].clientX;
       const diff = currentX - startX;
-      currentTranslateX = Math.max(Math.min(prevTranslateX + diff, 250), -250);
+      currentTranslateX = Math.max(Math.min(prevTranslateX + diff, 100), -800);
       panoScene.style.transform = `translateX(${currentTranslateX}px)`;
     });
 
@@ -642,7 +698,7 @@
     window.addEventListener('mousemove', (e) => {
       if (!isPanoDragging) return;
       const diff = e.clientX - startX;
-      currentTranslateX = Math.max(Math.min(prevTranslateX + diff, 250), -250);
+      currentTranslateX = Math.max(Math.min(prevTranslateX + diff, 100), -800);
       panoScene.style.transform = `translateX(${currentTranslateX}px)`;
     });
 
@@ -771,7 +827,7 @@
 
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v30';
+        const CACHE_NAME = 'geoglass-v32';
         self.addEventListener('install', e => {
           e.waitUntil(
             caches.open(CACHE_NAME).then(cache => cache.addAll(['./', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']))
