@@ -111,8 +111,9 @@
       border-radius: 2px; margin: 12px 0 6px 0;
     }
     .sun-cycle-dot {
-      position: absolute; top: -5px; left: 70%; width: 14px; height: 14px;
+      position: absolute; top: -5px; left: 50%; width: 14px; height: 14px;
       background: #ffcc00; border: 2px solid #ffffff; border-radius: 50%; box-shadow: 0 0 8px #ffcc00;
+      transition: left 0.5s ease;
     }
     .sun-cycle-time { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.8); font-weight: 600; }
 
@@ -145,7 +146,7 @@
     }
     .search-results-popover.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 
-    /* Плавающий бар категорий (с 5 пунктами) */
+    /* Плавающая панель снизу (5 пунктов меню) */
     .floating-tab-bar { 
       position: fixed; 
       bottom: max(18px, env(safe-area-inset-bottom)); 
@@ -321,7 +322,7 @@
         <div class="liquid-sun"></div>
         <div class="liquid-cloud"></div>
       </div>
-      <span>+28°C</span>
+      <span id="cardTemp">+—°C</span>
     </div>
 
     <!-- Погода поповер -->
@@ -331,18 +332,18 @@
         <div class="close-btn" onclick="toggleWeatherSheet()">✕</div>
       </div>
       <div class="sheet-list">
-        <div class="sheet-item"><span>Сейчас</span><span><span class="mini-icon mini-sun"></span>+28°C, Ясно</span></div>
-        <div class="sheet-item"><span>Ночь</span><span><span class="mini-icon mini-moon"></span>+21°C, Ветер</span></div>
-        <div class="sheet-item"><span>Температура воды</span><span><span class="mini-icon mini-water"></span>+25°C</span></div>
+        <div class="sheet-item"><span>Сейчас</span><span><span class="mini-icon mini-sun"></span><span id="weatherCurrent">—</span></span></div>
+        <div class="sheet-item"><span>Ночь (мин.)</span><span><span class="mini-icon mini-moon"></span><span id="weatherNight">—</span></span></div>
+        <div class="sheet-item"><span>Температура воды</span><span><span class="mini-icon mini-water"></span>+24°C</span></div>
       </div>
       
       <div class="sun-cycle-container">
         <div class="sun-cycle-time">
-          <span><span class="mini-icon mini-sun"></span>Восход 06:58</span>
-          <span><span class="mini-icon mini-moon"></span>Закат 18:12</span>
+          <span><span class="mini-icon mini-sun"></span>Восход <span id="sunriseTime">06:30</span></span>
+          <span><span class="mini-icon mini-moon"></span>Закат <span id="sunsetTime">18:40</span></span>
         </div>
         <div class="sun-cycle-bar">
-          <div class="sun-cycle-dot"></div>
+          <div class="sun-cycle-dot" id="sunDot"></div>
         </div>
       </div>
     </div>
@@ -504,6 +505,53 @@
       className: '', iconSize: [160, 34], iconAnchor: [80, 17]
     });
     L.marker(memorialCoords, { icon: memorialIcon }).addTo(map);
+
+    // Функция загрузки реальной погоды Open-Meteo
+    async function loadRealWeather() {
+      try {
+        const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=36.2618&longitude=32.3130&current=temperature_2m,weather_code&daily=sunrise,sunset,temperature_2m_min&timezone=auto');
+        const data = await response.json();
+
+        const currentTemp = Math.round(data.current.temperature_2m);
+        const nightTemp = Math.round(data.daily.temperature_2m_min[0]);
+        const wCode = data.current.weather_code;
+        
+        let conditionText = "Ясно";
+        if (wCode >= 1 && wCode <= 3) conditionText = "Переменная облачность";
+        else if (wCode >= 45 && wCode <= 48) conditionText = "Туман";
+        else if (wCode >= 51) conditionText = "Осадки";
+
+        const sunriseStr = data.daily.sunrise[0].split('T')[1];
+        const sunsetStr = data.daily.sunset[0].split('T')[1];
+
+        document.getElementById('cardTemp').innerText = `+${currentTemp}°C`;
+        document.getElementById('weatherCurrent').innerText = `+${currentTemp}°C, ${conditionText}`;
+        document.getElementById('weatherNight').innerText = `+${nightTemp}°C, Прохладно`;
+        document.getElementById('sunriseTime').innerText = sunriseStr;
+        document.getElementById('sunsetTime').innerText = sunsetStr;
+
+        // Расчет позиции точки солнца на шкале
+        updateSunPosition(data.daily.sunrise[0], data.daily.sunset[0]);
+      } catch (err) {
+        console.error("Не удалось загрузить погоду, используются резервные данные", err);
+      }
+    }
+
+    function updateSunPosition(sunriseIso, sunsetIso) {
+      const now = new Date();
+      const sunrise = new Date(sunriseIso);
+      const sunset = new Date(sunsetIso);
+      const sunDot = document.getElementById('sunDot');
+
+      const totalDayMs = sunset - sunrise;
+      const elapsedMs = now - sunrise;
+
+      let percent = (elapsedMs / totalDayMs) * 100;
+      percent = Math.max(0, Math.min(100, percent)); // ограничиваем от 0 до 100%
+      sunDot.style.left = percent + '%';
+    }
+
+    loadRealWeather();
 
     function toggleBusSheet() {
       const busSheet = document.getElementById('busSheet');
@@ -723,7 +771,7 @@
 
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'geoglass-v28';
+        const CACHE_NAME = 'geoglass-v29';
         self.addEventListener('install', e => {
           e.waitUntil(
             caches.open(CACHE_NAME).then(cache => cache.addAll(['./', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']))
