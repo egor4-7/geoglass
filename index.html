@@ -28,7 +28,8 @@
 html,body{width:100%;height:100%;overflow:hidden;background:var(--surface);color:var(--ink);font-family:Roboto,system-ui,sans-serif}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 button:focus-visible,input:focus-visible{outline:3px solid #7DB892;outline-offset:2px}
-#map{position:absolute;inset:0;z-index:1}
+#map{position:absolute;inset:0;z-index:1;background:var(--surface)}
+.dark-tiles{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.6)}
 .leaflet-control-attribution{font-size:10px;color:var(--ink2)!important;background:var(--glass)!important;backdrop-filter:blur(8px);margin-bottom:96px!important}
 .glass{background:var(--glass);backdrop-filter:blur(var(--blur)) saturate(160%);-webkit-backdrop-filter:blur(var(--blur)) saturate(160%);border:1px solid var(--edge);box-shadow:var(--sh)}
 
@@ -190,8 +191,8 @@ const map=L.map('map',{zoomControl:false}).setView(C0,16);
 
 /* ---------- карта ---------- */
 const T={
-  light:L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© OpenStreetMap, © CARTO'}),
-  dark:L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© OpenStreetMap, © CARTO'}),
+  light:L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}),
+  dark:L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,className:'dark-tiles',attribution:'© OpenStreetMap'}),
   sat:L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'© Esri'}),
   topo:L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenTopoMap'})
 };
